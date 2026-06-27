@@ -2,7 +2,7 @@
 models/models.py
 Modelos ORM SQLAlchemy para la base de datos interna SQLite del sistema.
 """
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 from backend.core.database import Base
 
@@ -23,4 +23,46 @@ class Conexion(Base):
     password_db = Column(Text, nullable=True)               # Contraseña cifrada con Fernet
     registros_generados = Column(Integer, nullable=False, default=0)
     registros_insertados = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class SyncQueueItem(Base):
+    __tablename__ = "sync_queue"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    artifact_type = Column(String(50), nullable=False)
+    local_id = Column(String(100), nullable=False)
+    operation = Column(String(50), nullable=False, default="upsert")
+    payload_json = Column(Text, nullable=False)
+    status = Column(String(50), nullable=False, default="pending")
+    attempts = Column(Integer, nullable=False, default=0)
+    last_error = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    agent = Column(String(100), nullable=True)
+    skill_id = Column(String(100), nullable=True)
+    connection_id = Column(String(255), nullable=True)
+    action = Column(String(100), nullable=False)
+    result = Column(String(50), nullable=False)
+    backup_id = Column(String(100), nullable=True)
+    sandbox_id = Column(String(100), nullable=True)
+    human_approved = Column(Boolean, nullable=False, default=False)
+    details_json = Column(Text, nullable=False, default="{}")
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class ReportArtifact(Base):
+    __tablename__ = "report_artifacts"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    artifact_type = Column(String(50), nullable=False, default="markdown")
+    content = Column(Text, nullable=False)
+    audit_log_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now())

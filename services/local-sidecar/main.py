@@ -5,12 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect, text
 
 # Import routers from the modules
+from backend.api.audit_router import router as audit_router
 from backend.api.connector_router import router as connector_router
 from backend.api.generator_router import router as generator_router
 from backend.api.mcp_router import router as mcp_router
 from backend.api.parser_router import router as parser_router
 from backend.api.safety_router import router as safety_router
 from backend.api.skills_router import router as skills_router
+from backend.api.sync_router import router as sync_router
 from query_analyzer.api.router import router as analyzer_router
 
 from backend.core.database import Base, engine
@@ -87,6 +89,8 @@ app.include_router(skills_router, prefix="/api/v1")
 
 # Mount Andre's routers
 app.include_router(analyzer_router, prefix="/api/v1")
+app.include_router(audit_router, prefix="/api/v1")
+app.include_router(sync_router, prefix="/api/v1")
 
 # Mount ER Diagrams routers
 app.include_router(diagrams_router, prefix="/api/v1")

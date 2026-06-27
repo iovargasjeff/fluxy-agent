@@ -30,8 +30,16 @@ web:
 
 ## Exit Criteria
 
-- Desktop local projects can sync diagrams to cloud after login.
-- Credentials and private artifacts stay local.
-- Each skill run has an audit trail.
-- Report artifacts can be opened from the app.
+- Desktop local projects can sync diagrams to cloud after login. Baseline queue is implemented through `/api/v1/sync/queue`; cloud push worker is deferred.
+- Credentials and private artifacts stay local. Done through safe payload validation that rejects sensitive keys and unsupported artifact types.
+- Each skill run has an audit trail. Audit endpoint is implemented through `/api/v1/audit/logs`; full automatic runner integration is deferred to the workflow layer.
+- Report artifacts can be opened from the app. Markdown report artifacts are implemented through `/api/v1/audit/reports` and `/api/v1/audit/reports/{id}.md`.
 
+## Current Status
+
+Phase 09 is implemented as a local-first Team Safety foundation. The sidecar now has a safe sync queue, audit log storage and Markdown report artifacts. Sync does not upload credentials, dumps, backups, private query results or raw rows.
+
+## Verification
+
+- `python -m py_compile services/local-sidecar/backend/api/sync_router.py services/local-sidecar/backend/api/audit_router.py services/local-sidecar/backend/sync/safe_payload.py services/local-sidecar/backend/reports/markdown.py` passes.
+- Smoke test verifies safe sync enqueue, sensitive payload rejection and Markdown report rendering.

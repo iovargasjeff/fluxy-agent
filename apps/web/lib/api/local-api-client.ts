@@ -106,6 +106,34 @@ export class FluxyLocalApiClient {
     return this.post('/api/v1/mcp/rpc', input);
   }
 
+  enqueueSync(input: unknown) {
+    return this.post('/api/v1/sync/queue', input);
+  }
+
+  listSyncQueue(status = 'pending') {
+    return this.get(`/api/v1/sync/queue?status=${encodeURIComponent(status)}`);
+  }
+
+  markSyncItemSynced(itemId: number) {
+    return this.post(`/api/v1/sync/queue/${itemId}/mark-synced`, {});
+  }
+
+  createAuditLog(input: unknown) {
+    return this.post('/api/v1/audit/logs', input);
+  }
+
+  listAuditLogs() {
+    return this.get('/api/v1/audit/logs');
+  }
+
+  createReport(input: unknown) {
+    return this.post('/api/v1/audit/reports', input);
+  }
+
+  listReports() {
+    return this.get('/api/v1/audit/reports');
+  }
+
   private async get(path: string) {
     const response = await this.fetcher(`${this.baseUrl}${path}`);
     return this.parse(response);

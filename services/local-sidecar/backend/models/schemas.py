@@ -307,3 +307,67 @@ class McpRpcResponse(BaseModel):
     id: Optional[Any] = None
     result: Optional[Any] = None
     error: Optional[Dict[str, Any]] = None
+
+
+class SyncQueueRequest(BaseModel):
+    artifact_type: str
+    local_id: str
+    operation: str = "upsert"
+    payload: Dict[str, Any]
+
+
+class SyncQueueResponse(BaseModel):
+    id: int
+    artifact_type: str
+    local_id: str
+    operation: str
+    status: str
+    attempts: int
+    last_error: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AuditLogRequest(BaseModel):
+    agent: Optional[str] = None
+    skill_id: Optional[str] = None
+    connection_id: Optional[str] = None
+    action: str
+    result: str
+    backup_id: Optional[str] = None
+    sandbox_id: Optional[str] = None
+    human_approved: bool = False
+    details: Dict[str, Any] = {}
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    agent: Optional[str] = None
+    skill_id: Optional[str] = None
+    connection_id: Optional[str] = None
+    action: str
+    result: str
+    backup_id: Optional[str] = None
+    sandbox_id: Optional[str] = None
+    human_approved: bool
+    details: Dict[str, Any] = {}
+    created_at: datetime
+
+
+class ReportCreateRequest(BaseModel):
+    title: str
+    audit_log_id: Optional[int] = None
+    summary: str
+    sections: Dict[str, Any] = {}
+
+
+class ReportArtifactResponse(BaseModel):
+    id: int
+    title: str
+    artifact_type: str = "markdown"
+    content: str
+    audit_log_id: Optional[int] = None
+    created_at: datetime
