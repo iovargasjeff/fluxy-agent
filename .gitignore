@@ -28,6 +28,7 @@ target/
 .env
 .env.*
 !.env.example
+!**/.env.example
 
 # Logs
 *.log
@@ -41,4 +42,3 @@ yarn-error.log*
 Thumbs.db
 .idea/
 .vscode/
-

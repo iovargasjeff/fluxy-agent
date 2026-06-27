@@ -1,6 +1,6 @@
-# FluxSQL Web
+# Fluxy Web
 
-Aplicacion web de FluxSQL para crear, editar, guardar, versionar y compartir diagramas de base de datos desde el navegador.
+Aplicacion web de Fluxy para crear, editar, guardar, versionar y compartir diagramas de base de datos desde el navegador.
 
 ## Stack
 

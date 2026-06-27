@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FluxSQL — Diseña tu base de datos en equipo",
+  title: "Fluxy — Diseña tu base de datos en equipo",
   description: "Genera diagramas ER desde SQL, colabora en tiempo real y comparte tus esquemas con tu equipo. Sin instalaciones.",
 };
 

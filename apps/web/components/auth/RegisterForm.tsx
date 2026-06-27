@@ -35,7 +35,7 @@ export function RegisterForm() {
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Registro</CardTitle>
         <CardDescription className="text-center text-[#94A3B8]">
-          Crea una cuenta nueva en FluxSQL
+          Crea una cuenta nueva en Fluxy
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>

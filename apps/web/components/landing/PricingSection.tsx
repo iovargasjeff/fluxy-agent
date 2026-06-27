@@ -21,7 +21,7 @@ export function PricingSection() {
         <p className="text-[#1A6CF6] text-sm font-medium uppercase tracking-wider mb-3">Precios</p>
         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Gratis para siempre</h2>
         <p className="text-[#9CA3AF] text-lg mb-12 max-w-xl mx-auto">
-          FluxSQL es un proyecto open source construido por estudiantes para estudiantes.
+          Fluxy es un proyecto open source construido por estudiantes para estudiantes.
           Sin trials. Sin tarjeta de crédito.
         </p>
 

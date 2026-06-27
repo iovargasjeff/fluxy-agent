@@ -15,7 +15,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 z-50">
           <Database className="w-6 h-6 text-[#1A6CF6]" />
-          <span className="text-xl font-bold text-slate-900 tracking-tight">FluxSQL</span>
+          <span className="text-xl font-bold text-slate-900 tracking-tight">Fluxy</span>
         </Link>
 
         {/* Center Links (Desktop) */}

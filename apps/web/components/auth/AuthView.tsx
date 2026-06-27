@@ -57,7 +57,7 @@ export function AuthView({ defaultTab = 'login' }: { defaultTab?: 'login' | 'reg
             <div className="w-10 h-10 rounded-xl bg-[#1A6CF6]/10 flex items-center justify-center">
               <Database className="w-6 h-6 text-[#1A6CF6]" />
             </div>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">FluxSQL</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">Fluxy</span>
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 bg-white/50 w-fit mb-6 shadow-sm">
@@ -72,7 +72,7 @@ export function AuthView({ defaultTab = 'login' }: { defaultTab?: 'login' | 'reg
           </h1>
 
           <p className="text-slate-600 text-lg max-w-md mb-12 leading-relaxed">
-            FluxSQL te ayuda a modelar, visualizar y compartir tus bases de datos de manera rápida y eficiente.
+            Fluxy te ayuda a modelar, visualizar y compartir tus bases de datos de manera rápida y eficiente.
           </p>
 
           {/* Scattered UI Illustration (Replacing old dark SVG) */}
@@ -211,7 +211,7 @@ export function AuthView({ defaultTab = 'login' }: { defaultTab?: 'login' | 'reg
                         name="email" 
                         type="email" 
                         required 
-                        defaultValue="test@fluxsql.com"
+                        defaultValue="test@fluxy.com"
                         placeholder="ejemplo@correo.com"
                         className="pl-10 bg-white border-slate-200 focus-visible:ring-[#1A6CF6] text-slate-900 h-12 rounded-xl shadow-sm placeholder:text-slate-400"
                         disabled={isPending}
@@ -345,7 +345,7 @@ export function AuthView({ defaultTab = 'login' }: { defaultTab?: 'login' | 'reg
 
       {/* Global Footer */}
       <div className="w-full text-center py-6 text-xs text-slate-400 relative z-10 font-medium">
-        © 2024 FluxSQL. Todos los derechos reservados.
+        © 2024 Fluxy. Todos los derechos reservados.
       </div>
     </div>
   )

@@ -18,7 +18,7 @@ import {
   type EditorNode,
 } from '@/lib/editor-schema'
 
-const SQL_PLACEHOLDER = `-- FluxSQL Editor
+const SQL_PLACEHOLDER = `-- Fluxy Editor
 -- Escribe tu DDL aquí
 
 CREATE TABLE users (

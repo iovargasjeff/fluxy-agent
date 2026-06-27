@@ -28,7 +28,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
     <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 h-screen sticky top-0 bg-[#0B1322] border-r border-[#1E2A45]">
       
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-transparent">
-        <span className="text-white font-semibold text-base">FluxSQL</span>
+        <span className="text-white font-semibold text-base">Fluxy</span>
       </div>
 
       {/* Nav items */}

@@ -30,7 +30,7 @@ export function LoginForm() {
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Iniciar Sesión</CardTitle>
         <CardDescription className="text-center text-[#94A3B8]">
-          Ingresa a tu cuenta de FluxSQL
+          Ingresa a tu cuenta de Fluxy
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>

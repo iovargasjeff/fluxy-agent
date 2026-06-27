@@ -4,18 +4,17 @@
   "private": true,
   "description": "Fluxy monorepo for web, desktop, local sidecar, skills and agent bridge.",
   "scripts": {
-    "dev:web": "pnpm --dir apps/web dev",
-    "dev:api": "pnpm --dir services/api dev",
+    "dev:web": "pnpm --filter @fluxy/web dev",
+    "dev:api": "pnpm --filter @fluxy/api dev",
     "dev:local-sidecar": "python services/local-sidecar/main.py",
-    "build:web": "pnpm --dir apps/web build",
-    "build:api": "pnpm --dir services/api build",
-    "lint:web": "pnpm --dir apps/web lint",
-    "lint:api": "pnpm --dir services/api lint",
+    "build:web": "pnpm --filter @fluxy/web build",
+    "build:api": "pnpm --filter @fluxy/api build",
+    "lint:web": "pnpm --filter @fluxy/web lint",
+    "lint:api": "pnpm --filter @fluxy/api lint",
     "typecheck": "pnpm --recursive --if-present run lint"
   },
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "pnpm@10.0.0"
+  "packageManager": "pnpm@11.7.0"
 }
-

@@ -13,7 +13,7 @@ export default function Footer() {
             </div>
           </Link>
           <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
-            FluxSQL, para una forma más intencional de trabajar en equipo y diseñar bases de datos.
+            Fluxy, para una forma más intencional de trabajar en equipo y diseñar bases de datos.
           </p>
           
           {/* Social Icons */}
