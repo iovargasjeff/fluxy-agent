@@ -25,7 +25,16 @@ Create the final Fluxy repository structure and move rescued code into its futur
 
 ## Exit Criteria
 
-- Final folders exist.
-- Basic install commands are documented.
-- Old rescued code remains in `base` until MVP builds.
+- Final folders exist. Done.
+- Basic install commands are documented. Done.
+- Rescued web code exists in `apps/web`. Done.
+- Rescued NestJS API code exists in `services/api`. Done.
+- Rescued Tauri code exists in `apps/desktop/src-tauri`. Done.
+- Rescued FastAPI sidecar exists in `services/local-sidecar`. Done.
+- Shared package placeholders exist under `packages`. Done.
+- Official skills folder exists. Done.
+- Old rescued code remains in `base` until MVP builds. Done.
 
+## Current Status
+
+Phase 01 is structurally complete. The next phase must make the web app and NestJS API coherent as Fluxy cloud surfaces.
