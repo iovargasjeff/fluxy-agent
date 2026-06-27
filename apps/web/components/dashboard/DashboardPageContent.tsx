@@ -6,6 +6,8 @@ import { logoutAction } from '@/lib/backend/actions/auth/logout'
 import { Button } from '@/components/ui/button'
 import { DashboardSidebar } from './DashboardSidebar'
 import { DashboardClient } from './DashboardClient'
+import { DesktopLocalDashboard } from './DesktopLocalDashboard'
+import { getRuntimeMode } from '@/lib/runtime'
 
 interface ProjectItem {
   project: {
@@ -39,6 +41,11 @@ export function DashboardPageContent({
   currentUser,
 }: DashboardPageContentProps) {
   const [activeSection, setActiveSection] = useState('proyectos')
+  const runtimeMode = getRuntimeMode(Boolean(userEmail))
+
+  if (runtimeMode !== 'web') {
+    return <DesktopLocalDashboard />
+  }
 
   return (
     <>
