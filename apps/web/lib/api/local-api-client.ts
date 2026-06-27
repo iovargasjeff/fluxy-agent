@@ -86,6 +86,18 @@ export class FluxyLocalApiClient {
     return this.post('/api/v1/skills/run', input);
   }
 
+  getPostgresqlSafetyTools() {
+    return this.get('/api/v1/safety/postgresql/tools');
+  }
+
+  createPostgresqlBackup(input: unknown) {
+    return this.post('/api/v1/safety/postgresql/backup', input);
+  }
+
+  createPostgresqlSandbox(input: unknown) {
+    return this.post('/api/v1/safety/postgresql/sandbox', input);
+  }
+
   private async get(path: string) {
     const response = await this.fetcher(`${this.baseUrl}${path}`);
     return this.parse(response);
