@@ -5,7 +5,7 @@ This is the target demo flow for the current MVP baseline.
 ## Prerequisites
 
 - Node.js and pnpm.
-- Python with `services/local-sidecar/requirements.txt` installed.
+- Python with `apps/desktop/backend-python/requirements.txt` installed.
 - Rust/Cargo for Tauri checks.
 - Optional: PostgreSQL client tools (`pg_dump`, `pg_restore`).
 - Optional: Docker for PostgreSQL sandbox execution.

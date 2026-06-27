@@ -54,4 +54,4 @@ Phase 02 is contract-complete and ready for persistence wiring. The API currentl
 
 - `pnpm list -r --depth -1` detects the Fluxy workspace packages.
 - `pnpm --filter @fluxy/api build` passes.
-- `rg "FluxSQL|fluxsql" apps/web services/api apps/desktop/src-tauri` returns no matches.
+- `rg "FluxSQL|fluxsql" apps/web/frontend-app apps/web/backend-api apps/desktop/frontend-app/src-tauri` returns no matches.

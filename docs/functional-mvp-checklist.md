@@ -4,10 +4,10 @@ This checklist turns the phase plan into a working app plan.
 
 ## Repository Foundation
 
-- Create `apps/web`.
+- Create `apps/web/frontend-app`.
 - Create `apps/desktop`.
-- Create `services/api`.
-- Create `services/local-sidecar`.
+- Create `apps/web/backend-api`.
+- Create `apps/desktop/backend-python`.
 - Create `packages/shared`.
 - Create `packages/db-schema`.
 - Create `packages/skill-sdk`.
@@ -23,7 +23,7 @@ Done when:
 
 ## Web App
 
-- Move rescued Next.js code into `apps/web`.
+- Move rescued Next.js code into `apps/web/frontend-app`.
 - Rename visible product text to Fluxy.
 - Keep project dashboard.
 - Keep diagram editor.
@@ -39,7 +39,7 @@ Done when:
 
 ## Cloud API
 
-- Move rescued NestJS seed into `services/api`.
+- Move rescued NestJS seed into `apps/web/backend-api`.
 - Define modules: auth, users, projects, diagrams, versions, comments, public links.
 - Define DTOs that never include local secrets.
 - Own cloud project and diagram persistence.
@@ -53,7 +53,7 @@ Done when:
 
 ## Desktop App
 
-- Move Tauri shell into `apps/desktop/src-tauri`.
+- Move Tauri shell into `apps/desktop/frontend-app/src-tauri`.
 - Point desktop frontend to shared web UI or desktop build.
 - Rename app title and bundle metadata to Fluxy.
 - Start or connect to the FastAPI local sidecar.
@@ -67,7 +67,7 @@ Done when:
 
 ## Local Sidecar
 
-- Move FastAPI backend into `services/local-sidecar`.
+- Move FastAPI backend into `apps/desktop/backend-python`.
 - Keep connector routes.
 - Keep schema analysis.
 - Keep local diagram/project storage.

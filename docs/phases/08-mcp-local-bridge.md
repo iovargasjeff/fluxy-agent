@@ -31,5 +31,5 @@ Phase 08 is implemented as a local JSON-RPC MCP bridge exposed by the sidecar. I
 
 ## Verification
 
-- `python -m py_compile services/local-sidecar/backend/mcp/tools.py services/local-sidecar/backend/api/mcp_router.py` passes.
+- `python -m py_compile apps/desktop/backend-python/backend/mcp/tools.py apps/desktop/backend-python/backend/api/mcp_router.py` passes.
 - Smoke test verifies `initialize`, `tools/list`, a safe `fluxy_run_skill`, and a risky `fluxy_run_skill` returning approval requirements.

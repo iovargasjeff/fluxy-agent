@@ -38,5 +38,5 @@ Phase 05 is implemented as the first Synthetic Seeder baseline. It supports repr
 
 ## Verification
 
-- `python -m py_compile services/local-sidecar/backend/generators/data_generator.py services/local-sidecar/backend/generators/exporters.py services/local-sidecar/backend/api/generator_router.py` passes.
+- `python -m py_compile apps/desktop/backend-python/backend/generators/data_generator.py apps/desktop/backend-python/backend/generators/exporters.py apps/desktop/backend-python/backend/api/generator_router.py` passes.
 - A local smoke script verifies deterministic seed output and PostgreSQL identifier quoting.

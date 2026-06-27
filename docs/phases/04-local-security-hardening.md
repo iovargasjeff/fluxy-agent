@@ -42,5 +42,5 @@ Phase 04 is implemented as the first security baseline. Saved connection respons
 
 ## Verification
 
-- `rg "decrypt_password|password.*Response|devuelta descifrada" services/local-sidecar/backend/api services/local-sidecar/backend/models/schemas.py` returns no API/schema exposure.
-- `python -m py_compile services/local-sidecar/main.py services/local-sidecar/backend/api/connector_router.py services/local-sidecar/backend/policy/engine.py` passes.
+- `rg "decrypt_password|password.*Response|devuelta descifrada" apps/desktop/backend-python/backend/api apps/desktop/backend-python/backend/models/schemas.py` returns no API/schema exposure.
+- `python -m py_compile apps/desktop/backend-python/main.py apps/desktop/backend-python/backend/api/connector_router.py apps/desktop/backend-python/backend/policy/engine.py` passes.

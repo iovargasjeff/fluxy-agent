@@ -31,7 +31,7 @@ Prepare a product demo and remove obsolete staging material only after the new r
 ## Exit Criteria
 
 - Web build passes. Done with `pnpm run build:web`.
-- Desktop build starts. Done with `cargo check` under `apps/desktop/src-tauri`.
+- Desktop build starts. Done with `cargo check` under `apps/desktop/frontend-app/src-tauri`.
 - Local sidecar starts. Import/health check passes; full long-running server is covered by `pnpm run dev:local-sidecar`.
 - NestJS API starts. Build passes with `pnpm run build:api`.
 - PostgreSQL demo passes. Safety tooling and fallback smoke tests pass; real database demo depends on local PostgreSQL credentials.
@@ -50,7 +50,7 @@ Phase 10 is implemented as an MVP closeout package:
 
 - `pnpm run build:web` passes.
 - `pnpm run build:api` passes.
-- `cargo check` passes in `apps/desktop/src-tauri`.
+- `cargo check` passes in `apps/desktop/frontend-app/src-tauri`.
 - Local sidecar import and health check pass.
 - Python compile checks pass.
 - MVP smoke tests pass.

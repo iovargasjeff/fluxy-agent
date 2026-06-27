@@ -41,5 +41,5 @@ Phase 09 is implemented as a local-first Team Safety foundation. The sidecar now
 
 ## Verification
 
-- `python -m py_compile services/local-sidecar/backend/api/sync_router.py services/local-sidecar/backend/api/audit_router.py services/local-sidecar/backend/sync/safe_payload.py services/local-sidecar/backend/reports/markdown.py` passes.
+- `python -m py_compile apps/desktop/backend-python/backend/api/sync_router.py apps/desktop/backend-python/backend/api/audit_router.py apps/desktop/backend-python/backend/sync/safe_payload.py apps/desktop/backend-python/backend/reports/markdown.py` passes.
 - Smoke test verifies safe sync enqueue, sensitive payload rejection and Markdown report rendering.

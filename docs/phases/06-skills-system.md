@@ -59,5 +59,5 @@ Phase 06 is implemented as a first skill runtime. Official skills are free and r
 
 ## Verification
 
-- `python -m py_compile services/local-sidecar/backend/skills/registry.py services/local-sidecar/backend/skills/runner.py services/local-sidecar/backend/api/skills_router.py` passes.
+- `python -m py_compile apps/desktop/backend-python/backend/skills/registry.py apps/desktop/backend-python/backend/skills/runner.py apps/desktop/backend-python/backend/api/skills_router.py` passes.
 - Smoke test verifies list, resolve and safe skill run behavior.

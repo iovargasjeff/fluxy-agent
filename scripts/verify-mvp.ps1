@@ -12,37 +12,40 @@ Write-Host "Checking web lint..."
 pnpm run lint:web
 
 Write-Host "Checking Tauri desktop..."
-Push-Location "apps/desktop/src-tauri"
+Push-Location "apps/desktop/frontend-app/src-tauri"
 cargo check
+if ($LASTEXITCODE -ne 0) {
+  throw "cargo check failed for Fluxy Desktop."
+}
 Pop-Location
 
 Write-Host "Checking local sidecar Python modules..."
 python -m py_compile `
-  services/local-sidecar/main.py `
-  services/local-sidecar/backend/api/connector_router.py `
-  services/local-sidecar/backend/api/generator_router.py `
-  services/local-sidecar/backend/api/skills_router.py `
-  services/local-sidecar/backend/api/safety_router.py `
-  services/local-sidecar/backend/api/mcp_router.py `
-  services/local-sidecar/backend/api/sync_router.py `
-  services/local-sidecar/backend/api/audit_router.py `
-  services/local-sidecar/backend/models/schemas.py `
-  services/local-sidecar/backend/models/models.py `
-  services/local-sidecar/backend/policy/engine.py `
-  services/local-sidecar/backend/generators/data_generator.py `
-  services/local-sidecar/backend/generators/exporters.py `
-  services/local-sidecar/backend/skills/registry.py `
-  services/local-sidecar/backend/skills/runner.py `
-  services/local-sidecar/backend/backups/postgres_backup.py `
-  services/local-sidecar/backend/sandbox/postgres_sandbox.py `
-  services/local-sidecar/backend/mcp/tools.py `
-  services/local-sidecar/backend/sync/safe_payload.py `
-  services/local-sidecar/backend/reports/markdown.py
+  apps/desktop/backend-python/main.py `
+  apps/desktop/backend-python/backend/api/connector_router.py `
+  apps/desktop/backend-python/backend/api/generator_router.py `
+  apps/desktop/backend-python/backend/api/skills_router.py `
+  apps/desktop/backend-python/backend/api/safety_router.py `
+  apps/desktop/backend-python/backend/api/mcp_router.py `
+  apps/desktop/backend-python/backend/api/sync_router.py `
+  apps/desktop/backend-python/backend/api/audit_router.py `
+  apps/desktop/backend-python/backend/models/schemas.py `
+  apps/desktop/backend-python/backend/models/models.py `
+  apps/desktop/backend-python/backend/policy/engine.py `
+  apps/desktop/backend-python/backend/generators/data_generator.py `
+  apps/desktop/backend-python/backend/generators/exporters.py `
+  apps/desktop/backend-python/backend/skills/registry.py `
+  apps/desktop/backend-python/backend/skills/runner.py `
+  apps/desktop/backend-python/backend/backups/postgres_backup.py `
+  apps/desktop/backend-python/backend/sandbox/postgres_sandbox.py `
+  apps/desktop/backend-python/backend/mcp/tools.py `
+  apps/desktop/backend-python/backend/sync/safe_payload.py `
+  apps/desktop/backend-python/backend/reports/markdown.py
 
 Write-Host "Running local smoke tests..."
 @'
 import sys
-sys.path.insert(0, 'services/local-sidecar')
+sys.path.insert(0, 'apps/desktop/backend-python')
 
 from main import health_check
 from backend.models.schemas import DatabaseEnvironmentEnum, DatabaseProfile, SkillRunRequest
@@ -92,4 +95,3 @@ print('mvp smoke ok')
 '@ | python -
 
 Write-Host "Fluxy MVP verification completed."
-

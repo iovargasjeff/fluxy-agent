@@ -81,31 +81,31 @@ Do not carry forward as product modules:
 base/salvage/frontend/fluxsql-web
 ```
 
-Future target: `apps/web`.
+Future target: `apps/web/frontend-app`.
 
 ```txt
 base/salvage/backend-cloud-nest/fluxsql-backend-app
 ```
 
-Future target: `services/api`.
+Future target: `apps/web/backend-api`.
 
 ```txt
 base/salvage/desktop-tauri/src-tauri
 ```
 
-Future target: `apps/desktop/src-tauri`.
+Future target: `apps/desktop/frontend-app/src-tauri`.
 
 ```txt
 base/salvage/local-sidecar-fastapi/backend-python
 ```
 
-Future target: `services/local-sidecar`.
+Future target: `apps/desktop/backend-python`.
 
 ```txt
 base/salvage/synthetic-data/backend
 ```
 
-Future target: selected modules inside `services/local-sidecar` and `skills/official/seed_data`.
+Future target: selected modules inside `apps/desktop/backend-python` and `skills/official/seed_data`.
 
 ```txt
 base/salvage/docs-reference/data-generator-docs

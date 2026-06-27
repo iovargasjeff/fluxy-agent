@@ -6,9 +6,11 @@
   "scripts": {
     "dev:web": "pnpm --filter @fluxy/web dev",
     "dev:api": "pnpm --filter @fluxy/api dev",
-    "dev:local-sidecar": "python services/local-sidecar/main.py",
+    "dev:desktop": "pnpm --filter @fluxy/desktop desktop:dev",
+    "dev:local-sidecar": "python apps/desktop/backend-python/main.py",
     "build:web": "pnpm --filter @fluxy/web build",
     "build:api": "pnpm --filter @fluxy/api build",
+    "build:desktop": "pnpm --filter @fluxy/desktop desktop:build",
     "lint:web": "pnpm --filter @fluxy/web lint",
     "lint:api": "pnpm --filter @fluxy/api lint",
     "typecheck": "pnpm --recursive --if-present run lint",

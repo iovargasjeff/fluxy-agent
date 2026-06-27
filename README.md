@@ -18,6 +18,18 @@ Fluxy Skills = free installable workflows for database review, seeding, document
 Fluxy MCP = local bridge for AI agents.
 ```
 
+Repository shape:
+
+```txt
+apps/
+├── web/
+│   ├── frontend-app/  # cloud web UI
+│   └── backend-api/   # NestJS cloud API
+└── desktop/
+    ├── frontend-app/  # desktop Next.js UI + Tauri
+    └── backend-python/ # FastAPI local sidecar
+```
+
 Core security rule:
 
 ```txt
@@ -29,4 +41,3 @@ Start here:
 
 - [Base rescue map](./base/README.md)
 - [Development phases](./docs/phases/README.md)
-

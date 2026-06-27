@@ -32,5 +32,5 @@ Phase 07 is implemented as a safe PostgreSQL backup/sandbox baseline. The sideca
 
 ## Verification
 
-- `python -m py_compile services/local-sidecar/backend/backups/postgres_backup.py services/local-sidecar/backend/sandbox/postgres_sandbox.py services/local-sidecar/backend/api/safety_router.py` passes.
+- `python -m py_compile apps/desktop/backend-python/backend/backups/postgres_backup.py apps/desktop/backend-python/backend/sandbox/postgres_sandbox.py apps/desktop/backend-python/backend/api/safety_router.py` passes.
 - Smoke test verifies tool detection and report-only fallback behavior when Docker is unavailable.
