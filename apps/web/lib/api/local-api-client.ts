@@ -52,6 +52,20 @@ export class FluxyLocalApiClient {
     return this.get('/api/v1/connect/saved') as Promise<SavedConnectionProfile[]>;
   }
 
+  getDatabaseProfile(connectionNumericId: number) {
+    return this.get(`/api/v1/connect/saved/${connectionNumericId}/profile`);
+  }
+
+  checkPolicy(input: {
+    operation: string;
+    environment?: SavedConnectionProfile['environment'];
+    has_backup?: boolean;
+    has_sandbox?: boolean;
+    human_approved?: boolean;
+  }) {
+    return this.post('/api/v1/connect/policy/check', input);
+  }
+
   generatePreview(input: unknown) {
     return this.post('/api/v1/generate/preview', input);
   }
@@ -87,4 +101,3 @@ export class FluxyLocalApiClient {
 }
 
 export const fluxyLocalApi = new FluxyLocalApiClient();
-

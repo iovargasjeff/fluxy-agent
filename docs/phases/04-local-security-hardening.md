@@ -31,8 +31,16 @@ Remove unsafe behavior before exposing agent workflows.
 
 ## Exit Criteria
 
-- Frontend never receives decrypted passwords.
-- Cloud never receives credentials.
-- Direct insert is behind policy checks.
-- Production profiles are read-only by default.
+- Frontend never receives decrypted passwords. Done for `/connect/saved`.
+- Cloud never receives credentials. Done by cloud DTO shape and local-only sidecar profiles.
+- Direct insert is behind policy checks. Done.
+- Production profiles are read-only by default. Done in policy engine.
 
+## Current Status
+
+Phase 04 is implemented as the first security baseline. Saved connection responses now expose `connection_id`, masked host, `has_credentials` and environment classification, but never `password_db`. Direct insert now returns `403` unless a future workflow supplies policy prerequisites.
+
+## Verification
+
+- `rg "decrypt_password|password.*Response|devuelta descifrada" services/local-sidecar/backend/api services/local-sidecar/backend/models/schemas.py` returns no API/schema exposure.
+- `python -m py_compile services/local-sidecar/main.py services/local-sidecar/backend/api/connector_router.py services/local-sidecar/backend/policy/engine.py` passes.

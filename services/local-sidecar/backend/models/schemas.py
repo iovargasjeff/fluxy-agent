@@ -1,16 +1,10 @@
-"""
-models/schemas.py
-Schemas Pydantic para request/response de todos los endpoints.
-"""
-from pydantic import BaseModel, Field
-from typing import Optional, List, Any, Dict
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
-# ─────────────────────────────────────────────────────────────
-# ENUMS
-# ─────────────────────────────────────────────────────────────
 class MotorBDEnum(str, Enum):
     mysql = "mysql"
     postgresql = "postgresql"
@@ -20,16 +14,26 @@ class MotorBDEnum(str, Enum):
     neo4j = "neo4j"
 
 
-# ─────────────────────────────────────────────────────────────
-# CONEXION SCHEMAS
-# ─────────────────────────────────────────────────────────────
+class DatabaseEnvironmentEnum(str, Enum):
+    development = "development"
+    staging = "staging"
+    production = "production"
+    unknown = "unknown"
+
+
+class PolicyDecision(str, Enum):
+    allow = "allow"
+    block = "block"
+    require_approval = "require_approval"
+
+
 class ConexionRequest(BaseModel):
     host: str = Field(..., min_length=1)
     puerto: int = Field(..., ge=1, le=65535)
     usuario: str
     password: str
     nombre_bd: str
-    motor: Optional[MotorBDEnum] = None  # Auto-detectado si no se proporciona
+    motor: Optional[MotorBDEnum] = None
 
 
 class ConexionResponse(BaseModel):
@@ -47,24 +51,53 @@ class ConexionResponse(BaseModel):
 
 
 class ConexionGuardadaResponse(BaseModel):
-    """Conexión guardada con credenciales (contraseña ya descifrada) para pre-rellenar el formulario."""
-    id: int
-    nombre_alias: Optional[str] = None
-    motor_bd: str
-    host: str
-    puerto: int
-    nombre_bd: str
-    usuario_db: Optional[str] = None
-    password_db: Optional[str] = None   # devuelta descifrada
+    """Safe saved connection profile. Never includes passwords."""
+
+    connection_id: str
+    alias: Optional[str] = None
+    engine: str
+    database: str
+    host_masked: str
+    port: int
+    username: Optional[str] = None
+    has_credentials: bool
+    environment: DatabaseEnvironmentEnum = DatabaseEnvironmentEnum.unknown
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 
-# ─────────────────────────────────────────────────────────────
-# SCHEMA BD EXTERNA
-# ─────────────────────────────────────────────────────────────
+class DatabaseProfile(BaseModel):
+    connection_id: str
+    alias: Optional[str] = None
+    engine: str
+    version: Optional[str] = None
+    database: str
+    host_masked: str
+    port: int
+    username: Optional[str] = None
+    environment: DatabaseEnvironmentEnum
+    has_credentials: bool
+    capabilities: List[str] = []
+
+
+class PolicyCheckRequest(BaseModel):
+    operation: str
+    environment: DatabaseEnvironmentEnum = DatabaseEnvironmentEnum.unknown
+    has_backup: bool = False
+    has_sandbox: bool = False
+    human_approved: bool = False
+
+
+class PolicyCheckResponse(BaseModel):
+    decision: PolicyDecision
+    reason: str
+    requires_backup: bool = False
+    requires_sandbox: bool = False
+    requires_human_approval: bool = False
+
+
 class ColumnSchema(BaseModel):
     name: str
     data_type: str
@@ -72,7 +105,7 @@ class ColumnSchema(BaseModel):
     is_primary_key: bool = False
     is_unique: bool = False
     default_value: Optional[str] = None
-    foreign_key: Optional[Dict[str, str]] = None  # {"table": "...", "column": "..."}
+    foreign_key: Optional[Dict[str, str]] = None
     max_length: Optional[int] = None
 
 
@@ -106,19 +139,19 @@ class TableRowsResponse(BaseModel):
     total_pages: int
 
 
-# ─────────────────────────────────────────────────────────────
-# GENERACIÓN DE DATOS
-# ─────────────────────────────────────────────────────────────
 class TableGenerationConfig(BaseModel):
     table_name: str
     record_count: int = Field(..., ge=1, le=100000)
     selected: bool = True
+    column_rules: Dict[str, Any] = {}
 
 
 class GenerateRequest(BaseModel):
     schema: DatabaseSchema
     table_configs: List[TableGenerationConfig]
     locale: Optional[str] = "es_ES"
+    seed: Optional[int] = None
+    domain: Optional[str] = None
 
 
 class GeneratePreviewRequest(BaseModel):
@@ -126,6 +159,8 @@ class GeneratePreviewRequest(BaseModel):
     table_configs: List[TableGenerationConfig]
     preview_rows: int = Field(default=10, ge=1, le=100)
     locale: Optional[str] = "es_ES"
+    seed: Optional[int] = None
+    domain: Optional[str] = None
 
 
 class GeneratedDataResponse(BaseModel):
@@ -140,6 +175,9 @@ class ExportRequest(BaseModel):
     table_configs: List[TableGenerationConfig]
     format: str = Field(..., pattern="^(sql|csv|json)$")
     locale: Optional[str] = "es_ES"
+    seed: Optional[int] = None
+    domain: Optional[str] = None
+    dialect: Optional[str] = None
 
 
 class ExportResponse(BaseModel):
@@ -150,14 +188,15 @@ class ExportResponse(BaseModel):
     total_records: int
 
 
-# ─────────────────────────────────────────────────────────────
-# INSERCIÓN DIRECTA
-# ─────────────────────────────────────────────────────────────
 class InsertRequest(BaseModel):
     connection: ConexionRequest
     schema: DatabaseSchema
     table_configs: List[TableGenerationConfig]
     locale: Optional[str] = "es_ES"
+    seed: Optional[int] = None
+    environment: DatabaseEnvironmentEnum = DatabaseEnvironmentEnum.unknown
+    allow_direct_write: bool = False
+    human_approved: bool = False
 
 
 class InsertResponse(BaseModel):
@@ -168,9 +207,6 @@ class InsertResponse(BaseModel):
     logs: List[str]
 
 
-# ─────────────────────────────────────────────────────────────
-# PARSER SQL
-# ─────────────────────────────────────────────────────────────
 class ParseSQLRequest(BaseModel):
     sql_content: str
 

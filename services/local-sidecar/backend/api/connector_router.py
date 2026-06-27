@@ -1,29 +1,30 @@
-"""
-api/connector_router.py
-Rutas para manejar la conexión a bases de datos externas y extracción de esquemas.
-Incluye endpoints para guardar, listar y eliminar conexiones exitosas.
-"""
+import math
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-from typing import Dict, Any, List
-import math
 
+from backend.analyzers.schema_analyzer import analyze_schema
+from backend.connectors.connector_factory import get_connector
 from backend.core.database import get_db
-from backend.core.encryption import encrypt_password, decrypt_password
+from backend.core.encryption import encrypt_password
+from backend.generators.data_generator import DataGenerator
 from backend.models.models import Conexion
 from backend.models.schemas import (
-    ConexionRequest,
     ConexionGuardadaResponse,
+    ConexionRequest,
+    DatabaseProfile,
     DatabaseSchema,
     InsertRequest,
     InsertResponse,
+    PolicyCheckRequest,
+    PolicyCheckResponse,
+    PolicyDecision,
     TableRowsRequest,
     TableRowsResponse,
 )
-from backend.connectors.connector_factory import get_connector
-from backend.analyzers.schema_analyzer import analyze_schema
-from backend.generators.data_generator import DataGenerator
+from backend.policy.engine import classify_environment, evaluate_policy, make_connection_id, mask_host
 
 router = APIRouter(prefix="/connect", tags=["Connector"])
 
@@ -36,14 +37,24 @@ def quote_table(name: str, motor: str) -> str:
     return f'"{name.replace(chr(34), chr(34) * 2)}"'
 
 
-# ─────────────────────────────────────────────────────────────
-# TEST DE CONEXIÓN
-# ─────────────────────────────────────────────────────────────
+def connection_profile_from_model(c: Conexion) -> ConexionGuardadaResponse:
+    environment = classify_environment(c.host, c.nombre_bd, c.nombre_alias)
+    return ConexionGuardadaResponse(
+        connection_id=make_connection_id(c.motor_bd, c.host, c.puerto, c.nombre_bd, c.usuario_db),
+        alias=c.nombre_alias,
+        engine=c.motor_bd,
+        database=c.nombre_bd,
+        host_masked=mask_host(c.host),
+        port=c.puerto,
+        username=c.usuario_db,
+        has_credentials=bool(c.password_db),
+        environment=environment,
+        created_at=c.created_at,
+    )
+
+
 @router.post("/test", response_model=Dict[str, Any])
-def test_connection(
-    req: ConexionRequest
-):
-    """Prueba la conexión a una base de datos externa."""
+def test_connection(req: ConexionRequest):
     try:
         connector = get_connector(req)
         result = connector.test_connection()
@@ -61,23 +72,23 @@ def test_connection(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ─────────────────────────────────────────────────────────────
-# ANALIZAR ESQUEMA (y guardar conexión exitosa)
-# ─────────────────────────────────────────────────────────────
+@router.post("/policy/check", response_model=PolicyCheckResponse)
+def check_policy(req: PolicyCheckRequest):
+    return evaluate_policy(
+        operation=req.operation,
+        environment=req.environment,
+        has_backup=req.has_backup,
+        has_sandbox=req.has_sandbox,
+        human_approved=req.human_approved,
+    )
+
+
 @router.post("/schema", response_model=DatabaseSchema)
-def get_external_schema(
-    req: ConexionRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Se conecta a la BD, extrae y analiza el esquema completo.
-    Si la conexión es exitosa, la guarda automáticamente para reutilizarla.
-    """
+def get_external_schema(req: ConexionRequest, db: Session = Depends(get_db)):
     try:
         with get_connector(req) as connector:
             schema = analyze_schema(connector)
 
-        # Guardar la conexión exitosa (evitar duplicados por host+puerto+bd+usuario)
         existing = db.query(Conexion).filter(
             Conexion.host == req.host,
             Conexion.puerto == req.puerto,
@@ -88,11 +99,10 @@ def get_external_schema(
         encrypted_pw = encrypt_password(req.password) if req.password else None
 
         if existing:
-            # Actualizar contraseña por si cambió
             existing.password_db = encrypted_pw
             existing.motor_bd = req.motor or "postgresql"
         else:
-            nueva = Conexion(
+            db.add(Conexion(
                 nombre_alias=f"{req.nombre_bd}@{req.host}",
                 motor_bd=req.motor or "postgresql",
                 host=req.host,
@@ -100,8 +110,7 @@ def get_external_schema(
                 nombre_bd=req.nombre_bd,
                 usuario_db=req.usuario,
                 password_db=encrypted_pw,
-            )
-            db.add(nueva)
+            ))
 
         db.commit()
         return schema
@@ -114,7 +123,6 @@ def get_external_schema(
 
 @router.post("/table-rows", response_model=TableRowsResponse)
 def list_table_rows(req: TableRowsRequest):
-    """Lists real rows from one detected table without modifying the database."""
     try:
         motor = req.connection.motor.value if req.connection.motor else ""
         with get_connector(req.connection) as connector:
@@ -161,75 +169,69 @@ def list_table_rows(req: TableRowsRequest):
         raise HTTPException(status_code=500, detail=f"No se pudieron listar los datos: {error}")
 
 
-# ─────────────────────────────────────────────────────────────
-# LISTAR CONEXIONES GUARDADAS
-# ─────────────────────────────────────────────────────────────
 @router.get("/saved", response_model=List[ConexionGuardadaResponse])
-def list_saved_connections(
-    db: Session = Depends(get_db)
-):
-    """Devuelve todas las conexiones guardadas."""
-    conexiones = (
-        db.query(Conexion)
-        .order_by(Conexion.created_at.desc())
-        .all()
-    )
-
-    result = []
-    for c in conexiones:
-        decrypted_pw = None
-        if c.password_db:
-            try:
-                decrypted_pw = decrypt_password(c.password_db)
-            except Exception:
-                decrypted_pw = None
-
-        result.append(ConexionGuardadaResponse(
-            id=c.id,
-            nombre_alias=c.nombre_alias,
-            motor_bd=c.motor_bd,
-            host=c.host,
-            puerto=c.puerto,
-            nombre_bd=c.nombre_bd,
-            usuario_db=c.usuario_db,
-            password_db=decrypted_pw,
-            created_at=c.created_at,
-        ))
-
-    return result
+def list_saved_connections(db: Session = Depends(get_db)):
+    conexiones = db.query(Conexion).order_by(Conexion.created_at.desc()).all()
+    return [connection_profile_from_model(c) for c in conexiones]
 
 
-# ─────────────────────────────────────────────────────────────
-# ELIMINAR CONEXIÓN GUARDADA
-# ─────────────────────────────────────────────────────────────
-@router.delete("/saved/{conexion_id}")
-def delete_saved_connection(
-    conexion_id: int,
-    db: Session = Depends(get_db)
-):
-    """Elimina una conexión guardada."""
-    conexion = db.query(Conexion).filter(
-        Conexion.id == conexion_id
-    ).first()
+@router.get("/saved/{conexion_id}/profile", response_model=DatabaseProfile)
+def get_database_profile(conexion_id: int, db: Session = Depends(get_db)):
+    conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
 
     if not conexion:
-        raise HTTPException(status_code=404, detail="Conexión no encontrada.")
+        raise HTTPException(status_code=404, detail="Conexion no encontrada.")
+
+    profile = connection_profile_from_model(conexion)
+    capabilities = ["inspect_schema", "generate_diagram", "preview_rows", "synthetic_seed_preview"]
+    if profile.engine == "postgresql":
+        capabilities.extend(["postgresql_backup", "postgresql_sandbox"])
+
+    return DatabaseProfile(
+        connection_id=profile.connection_id,
+        alias=profile.alias,
+        engine=profile.engine,
+        database=profile.database,
+        host_masked=profile.host_masked,
+        port=profile.port,
+        username=profile.username,
+        environment=profile.environment,
+        has_credentials=profile.has_credentials,
+        capabilities=capabilities,
+    )
+
+
+@router.delete("/saved/{conexion_id}")
+def delete_saved_connection(conexion_id: int, db: Session = Depends(get_db)):
+    conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+
+    if not conexion:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada.")
 
     db.delete(conexion)
     db.commit()
-    return {"message": "Conexión eliminada correctamente."}
+    return {"message": "Conexion eliminada correctamente."}
 
 
-# ─────────────────────────────────────────────────────────────
-# INSERCIÓN DIRECTA
-# ─────────────────────────────────────────────────────────────
 @router.post("/insert", response_model=InsertResponse)
-def insert_generated_data(
-    req: InsertRequest,
-    db: Session = Depends(get_db)
-):
-    """Genera los datos sintéticos y los inserta directamente en la base de datos externa."""
+def insert_generated_data(req: InsertRequest, db: Session = Depends(get_db)):
     try:
+        policy = evaluate_policy(
+            operation="direct_insert",
+            environment=req.environment,
+            has_backup=False,
+            has_sandbox=False,
+            human_approved=req.human_approved,
+        )
+        if not req.allow_direct_write or policy.decision != PolicyDecision.allow:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "message": "Direct insert is blocked by Fluxy policy.",
+                    "policy": policy.model_dump(),
+                },
+            )
+
         pk_offsets = {}
         with get_connector(req.connection) as connector:
             for table_schema in req.schema.tables:
@@ -249,16 +251,13 @@ def insert_generated_data(
                             row = cursor.fetchone()
                             max_val = 0
                             if row:
-                                if isinstance(row, dict):
-                                    max_val = list(row.values())[0] or 0
-                                else:
-                                    max_val = row[0] or 0
+                                max_val = (list(row.values())[0] if isinstance(row, dict) else row[0]) or 0
                             pk_offsets[table_name] = int(max_val)
                             cursor.close()
                         except Exception:
                             pk_offsets[table_name] = 0
 
-        generator = DataGenerator(locale=req.locale or "es_ES")
+        generator = DataGenerator(locale=req.locale or "es_ES", seed=req.seed)
         generated_data = generator.generate(req.schema, req.table_configs, pk_offsets=pk_offsets)
 
         total_inserted = 0
@@ -279,10 +278,8 @@ def insert_generated_data(
                     total_inserted += inserted
                     total_errors += errors
                     tables_processed += 1
-
                     logs.append(f"Tabla '{table_name}': {inserted} insertados, {errors} errores.")
 
-        # Actualizar estadísticas en la conexión guardada
         conexion = db.query(Conexion).filter(
             Conexion.host == req.connection.host,
             Conexion.puerto == req.connection.puerto,
@@ -301,5 +298,7 @@ def insert_generated_data(
             total_errors=total_errors,
             logs=logs,
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error durante la inserción: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error durante la insercion: {str(e)}")
