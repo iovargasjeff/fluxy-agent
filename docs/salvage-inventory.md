@@ -115,5 +115,5 @@ Future target: curated docs under `docs/product`, `docs/architecture` and `docs/
 
 ## Final Rule
 
-`base/` is not the product. It is the rescue area. Code becomes real only after it is moved into `apps/`, `services/`, `packages/` or `skills/` and adapted to Fluxy rules.
+`base/` is not the product. It is the rescue area. Code becomes real only after it is moved into `apps/` or `skills/` and adapted to Fluxy rules.
 

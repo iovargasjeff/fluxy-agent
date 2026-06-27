@@ -10,10 +10,7 @@ Create the final Fluxy repository structure and move rescued code into its futur
 - Create `apps/desktop` from the shared web shell plus `base/salvage/desktop-tauri/src-tauri`.
 - Create `apps/web/backend-api` from `base/salvage/backend-cloud-nest/fluxsql-backend-app`.
 - Create `apps/desktop/backend-python` from `base/salvage/local-sidecar-fastapi/backend-python`.
-- Create `packages/shared` for shared TypeScript types, runtime contracts and API clients.
-- Create `packages/db-schema` for cloud schema ownership.
-- Create `packages/skill-sdk` for skill metadata and runner contracts.
-- Create `packages/mcp-tools` for MCP tool schemas.
+- Defer shared TypeScript packages until web and desktop need real shared contracts.
 - Add root package manager config.
 - Add root README, scripts and repo conventions.
 
@@ -31,7 +28,7 @@ Create the final Fluxy repository structure and move rescued code into its futur
 - Rescued NestJS API code exists in `apps/web/backend-api`. Done.
 - Rescued Tauri code exists in `apps/desktop/frontend-app/src-tauri`. Done.
 - Rescued FastAPI sidecar exists in `apps/desktop/backend-python`. Done.
-- Shared package placeholders exist under `packages`. Done.
+- Shared package placeholders are intentionally removed until they have real consumers. Done.
 - Official skills folder exists. Done.
 - Old rescued code remains in `base` until MVP builds. Done.
 

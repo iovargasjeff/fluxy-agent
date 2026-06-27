@@ -323,14 +323,6 @@ importers:
         specifier: ^9.0.5
         version: 9.0.10
 
-  packages/db-schema: {}
-
-  packages/mcp-tools: {}
-
-  packages/shared: {}
-
-  packages/skill-sdk: {}
-
 packages:
 
   '@alloc/quick-lru@5.2.0':

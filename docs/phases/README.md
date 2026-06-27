@@ -16,15 +16,11 @@ MVP database safety scope: PostgreSQL for backup and sandbox. Other engines may 
 fluxy-agent/
   apps/
     web/
+      frontend-app/
+      backend-api/
     desktop/
-  services/
-    api/
-    local-sidecar/
-  packages/
-    shared/
-    db-schema/
-    skill-sdk/
-    mcp-tools/
+      frontend-app/
+      backend-python/
   skills/
     official/
   docs/

@@ -8,10 +8,7 @@ This checklist turns the phase plan into a working app plan.
 - Create `apps/desktop`.
 - Create `apps/web/backend-api`.
 - Create `apps/desktop/backend-python`.
-- Create `packages/shared`.
-- Create `packages/db-schema`.
-- Create `packages/skill-sdk`.
-- Create `packages/mcp-tools`.
+- Defer shared TypeScript packages until web and desktop need real shared contracts.
 - Create `skills/official`.
 - Add root workspace scripts.
 - Add environment examples for web, API and local sidecar.
@@ -188,4 +185,3 @@ Done when:
 - Desktop can login and sync a diagram.
 - MCP can run a safe review skill.
 - PostgreSQL backup/sandbox demo works or reports a clear fallback.
-
