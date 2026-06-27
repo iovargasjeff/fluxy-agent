@@ -29,8 +29,18 @@ desktop-hybrid:
 
 ## Exit Criteria
 
-- Desktop opens without login.
-- Desktop can create local projects.
-- Desktop can connect to a local database and inspect schema.
-- Desktop can generate diagrams from real databases without cloud.
+- Desktop Tauri app is moved to `apps/desktop/src-tauri`. Done in Phase 01.
+- FastAPI sidecar is moved to `services/local-sidecar`. Done in Phase 01.
+- Tauri sidecar boot path points to `services/local-sidecar`. Done.
+- Tauri production sidecar binary is named `fluxy-sidecar`. Done.
+- Runtime helpers support `web`, `desktop-local` and `desktop-hybrid`. Done.
+- Web has a `FluxyLocalApiClient` for the sidecar. Done.
+- Desktop opens without login. Pending full app runtime test.
+- Desktop can create local projects. Existing local diagram/project routers preserved; full UI wiring pending.
+- Desktop can connect to a local database and inspect schema. Existing sidecar route preserved.
+- Desktop can generate diagrams from real databases without cloud. Existing sidecar route preserved.
 
+## Verification
+
+- `python -m py_compile services/local-sidecar/main.py services/local-sidecar/backend/api/connector_router.py services/local-sidecar/backend/api/generator_router.py` passes after Phase 04/05 changes.
+- `pnpm run lint:web` passes with inherited warnings only.

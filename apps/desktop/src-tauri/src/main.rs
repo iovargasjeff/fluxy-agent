@@ -101,7 +101,7 @@ fn terminate_sidecar(child: CommandChild) {
 
         #[cfg(not(debug_assertions))]
         let _ = Command::new("taskkill")
-            .args(["/IM", "cdcart-backend.exe", "/T", "/F"])
+            .args(["/IM", "fluxy-sidecar.exe", "/T", "/F"])
             .output();
     }
     let _ = child.kill();
@@ -146,7 +146,7 @@ fn main() {
             let exports_dir = data_dir.join("exports");
             fs::create_dir_all(&exports_dir)?;
 
-            let database_path = data_dir.join("fluxsql_data.db");
+            let database_path = data_dir.join("fluxy_data.db");
             let secrets_key_path = data_dir.join("secrets.key");
             migrate_legacy_database(&database_path);
 
@@ -156,7 +156,9 @@ fn main() {
                     .parent()
                     .and_then(Path::parent)
                     .expect("invalid workspace layout")
-                    .join("backend-python");
+                    .join("..")
+                    .join("services")
+                    .join("local-sidecar");
                 app.shell()
                     .command("python")
                     .arg("main.py")
@@ -164,7 +166,7 @@ fn main() {
             };
 
             #[cfg(not(debug_assertions))]
-            let command = app.shell().sidecar("cdcart-backend")?;
+            let command = app.shell().sidecar("fluxy-sidecar")?;
 
             let command = command
                 .arg("--port")
@@ -199,7 +201,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building FluxSQL Desktop");
+        .expect("error while building Fluxy Desktop");
 
     app.run(|app_handle, event| {
         if matches!(event, RunEvent::Exit | RunEvent::ExitRequested { .. }) {

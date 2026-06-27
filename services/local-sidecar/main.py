@@ -16,8 +16,8 @@ from backend.models import models as backend_models
 from diagrams import models as diagrams_models
 
 app = FastAPI(
-    title="FluxSQL Backend API",
-    description="Unified Sidecar Backend for ER Diagrams, Data Generator and Query Analyzer",
+    title="Fluxy Local Sidecar API",
+    description="Local-first sidecar for diagrams, database inspection, synthetic data and query analysis",
     version="1.0.0"
 )
 
@@ -87,12 +87,17 @@ app.include_router(diagrams_router, prefix="/api/v1")
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "message": "Unified Backend is running"}
+    return {
+        "status": "ok",
+        "product": "Fluxy",
+        "service": "local-sidecar",
+        "message": "Fluxy Local Sidecar is running",
+    }
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="FluxSQL Backend Sidecar")
+    parser = argparse.ArgumentParser(description="Fluxy Local Sidecar")
     parser.add_argument("--port", type=int, default=8000, help="Port to run the server on")
     args = parser.parse_args()
 
-    print(f"Starting FluxSQL Backend Sidecar on port {args.port}...")
+    print(f"Starting Fluxy Local Sidecar on port {args.port}...")
     uvicorn.run(app, host="127.0.0.1", port=args.port)
