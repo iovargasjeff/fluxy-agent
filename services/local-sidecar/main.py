@@ -7,6 +7,7 @@ from sqlalchemy import inspect, text
 # Import routers from the modules
 from backend.api.connector_router import router as connector_router
 from backend.api.generator_router import router as generator_router
+from backend.api.mcp_router import router as mcp_router
 from backend.api.parser_router import router as parser_router
 from backend.api.safety_router import router as safety_router
 from backend.api.skills_router import router as skills_router
@@ -79,6 +80,7 @@ from diagrams.api.router import router as diagrams_router
 # Mount Mariela's routers
 app.include_router(connector_router, prefix="/api/v1")
 app.include_router(generator_router, prefix="/api/v1")
+app.include_router(mcp_router, prefix="/api/v1")
 app.include_router(parser_router, prefix="/api/v1")
 app.include_router(safety_router, prefix="/api/v1")
 app.include_router(skills_router, prefix="/api/v1")

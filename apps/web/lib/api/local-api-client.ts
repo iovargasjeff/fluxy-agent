@@ -98,6 +98,14 @@ export class FluxyLocalApiClient {
     return this.post('/api/v1/safety/postgresql/sandbox', input);
   }
 
+  mcpHealth() {
+    return this.get('/api/v1/mcp/health');
+  }
+
+  mcpRpc(input: unknown) {
+    return this.post('/api/v1/mcp/rpc', input);
+  }
+
   private async get(path: string) {
     const response = await this.fetcher(`${this.baseUrl}${path}`);
     return this.parse(response);
