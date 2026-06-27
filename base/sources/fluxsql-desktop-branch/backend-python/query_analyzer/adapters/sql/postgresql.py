@@ -1,0 +1,308 @@
+"""PostgreSQL database adapter using psycopg2."""
+
+import json
+import logging
+from datetime import UTC, datetime
+from typing import Any
+
+import psycopg2
+from psycopg2 import OperationalError
+
+from query_analyzer.adapters.base import BaseAdapter
+from query_analyzer.adapters.exceptions import (
+    ConnectionError as AdapterConnectionError,
+)
+from query_analyzer.adapters.exceptions import QueryAnalysisError
+from query_analyzer.adapters.migration_helpers import build_plan_tree
+from query_analyzer.adapters.models import ConnectionConfig, QueryAnalysisReport
+from query_analyzer.adapters.registry import AdapterRegistry
+
+from .postgresql_metrics import PostgreSQLMetricsHelper
+from .postgresql_parser import PostgreSQLExplainParser
+
+logger = logging.getLogger(__name__)
+
+
+@AdapterRegistry.register("postgresql")
+class PostgreSQLAdapter(BaseAdapter):
+    """PostgreSQL adapter using psycopg2 driver.
+
+    Implements all BaseAdapter methods for PostgreSQL, including intelligent
+    EXPLAIN plan parsing and analysis.
+    """
+
+    def __init__(self, config: ConnectionConfig) -> None:
+        """Initialize PostgreSQL adapter.
+
+        Args:
+            config: Connection configuration
+
+        Raises:
+            ConnectionConfigError: If config is invalid
+        """
+        super().__init__(config)
+        self.parser = PostgreSQLExplainParser(
+            seq_scan_threshold=config.extra.get("seq_scan_threshold", 10000)
+        )
+        self.metrics_helper = PostgreSQLMetricsHelper()
+
+    def connect(self) -> None:
+        """Establish connection to PostgreSQL.
+
+        Raises:
+            ConnectionError: If connection fails
+        """
+        try:
+            self._connection = psycopg2.connect(
+                host=self._config.host,
+                port=self._config.port,
+                database=self._config.database,
+                user=self._config.username,
+                password=self._config.password,
+                connect_timeout=self._config.extra.get("connection_timeout", 10),
+            )
+            self._is_connected = True
+            logger.info(f"Connected to PostgreSQL {self._config.host}:{self._config.port}")
+        except OperationalError as e:
+            self._is_connected = False
+            self._connection = None
+            raise AdapterConnectionError(f"Failed to connect to PostgreSQL: {e}") from e
+
+    def disconnect(self) -> None:
+        """Close PostgreSQL connection."""
+        if self._connection:
+            try:
+                self._connection.close()
+                logger.info("Disconnected from PostgreSQL")
+            except Exception as e:
+                logger.warning(f"Error closing connection: {e}")
+            finally:
+                self._connection = None
+                self._is_connected = False
+
+    def test_connection(self) -> bool:
+        """Test PostgreSQL connection with simple query.
+
+        Returns:
+            True if connection is valid, False otherwise
+        """
+        try:
+            if not self._is_connected:
+                return False
+
+            with self._connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                return True
+        except Exception as e:
+            logger.warning(f"Connection test failed: {e}")
+            return False
+
+    def execute_explain(self, query: str) -> QueryAnalysisReport:
+        """Execute EXPLAIN ANALYZE and generate analysis report.
+
+        Args:
+            query: SQL query to analyze (SELECT/INSERT/UPDATE/DELETE)
+
+        Returns:
+            QueryAnalysisReport with EXPLAIN real del motor
+
+        Raises:
+            QueryAnalysisError: If query analysis fails
+
+        Note:
+            v2.0.0: Retorna EXPLAIN real, sin score ni anti-patrones.
+            IA analysis se agrega en CLI si QA_AI_BASE_URL configurada.
+        """
+        if not self._is_connected:
+            raise QueryAnalysisError("Not connected to database")
+
+        # Validate query is not DDL
+        query_upper = query.strip().upper()
+        if any(query_upper.startswith(ddl) for ddl in ["CREATE", "ALTER", "DROP", "TRUNCATE"]):
+            raise QueryAnalysisError(
+                "Cannot analyze DDL statements. Only SELECT, INSERT, UPDATE, DELETE are supported."
+            )
+
+        try:
+            with self._connection.cursor() as cursor:
+                query_stripped = query.strip()
+                query_upper = query_stripped.upper()
+
+                if query_upper.startswith("EXPLAIN "):
+                    explain_query = query_stripped
+                else:
+                    explain_query = (
+                        f"EXPLAIN (ANALYZE, BUFFERS, VERBOSE, FORMAT JSON) {query_stripped}"
+                    )
+
+                cursor.execute(explain_query)
+                result = cursor.fetchone()
+
+                if not result:
+                    raise QueryAnalysisError("EXPLAIN returned no results")
+
+                # Parse JSON result
+                # psycopg2 with FORMAT JSON returns result[0] as a Python list (already parsed)
+                # Extract the first element which contains the plan
+                if isinstance(result[0], str):
+                    # If it's a string, parse it
+                    explain_json = json.loads(result[0])[0]
+                else:
+                    # If it's already a list (psycopg2 parsed it), just use first element
+                    explain_json = result[0][0]
+
+                # Parse plan and extract metrics
+                metrics = self.parser.parse(explain_json)
+                execution_time = metrics.get("execution_time_ms", 1.0)
+
+                # Get root plan
+                root_plan = explain_json.get("Plan", {})
+
+                # Build plan tree for visual representation
+                plan_tree = build_plan_tree(root_plan)
+
+                # Generate simple plan summary
+                plan_summary = self._summarize_plan(root_plan)
+
+                # Build v2 report with EXPLAIN real (sin score, sin anti-patrones)
+                return QueryAnalysisReport(
+                    engine="postgresql",
+                    query=query,
+                    execution_time_ms=execution_time,
+                    plan_tree=plan_tree,
+                    plan_summary=plan_summary,
+                    ai_analysis=None,  # ← Se agrega en CLI si hay IA configurada
+                    analyzed_at=datetime.now(UTC),
+                    raw_plan=explain_json,
+                    metrics=metrics,
+                )
+
+        except QueryAnalysisError:
+            raise
+        except Exception as e:
+            self._connection.rollback()
+            raise QueryAnalysisError(f"Failed to analyze query with EXPLAIN: {e}") from e
+
+    def _summarize_plan(self, plan: dict[str, Any]) -> str:
+        """Genera un resumen simple del plan de ejecución.
+
+        Args:
+            plan: Plan dict from EXPLAIN JSON
+
+        Returns:
+            Cadena con resumen simple (ej: "Index Scan on users")
+        """
+        if not plan:
+            return "Unknown plan"
+
+        node_type = plan.get("Node Type", "Unknown")
+        relation_name = plan.get("Relation Name", "")
+        index_name = plan.get("Index Name", "")
+
+        # Construir resumen básico
+        if relation_name:
+            summary = f"{node_type} on {relation_name}"
+            if index_name:
+                summary += f" using {index_name}"
+        else:
+            summary = node_type
+
+        # Agregar información del filtro si existe
+        filter_condition = plan.get("Filter", "")
+        if filter_condition:
+            summary += f" (Filter: {filter_condition})"
+
+        return summary
+
+    def get_slow_queries(self, threshold_ms: int = 1000) -> list[dict[str, Any]]:
+        """Get slow queries from pg_stat_statements.
+
+        Gracefully handles case where pg_stat_statements is not installed.
+
+        Args:
+            threshold_ms: Threshold in milliseconds (default: 1000)
+
+        Returns:
+            List of dicts with query timing information, or empty list if
+            pg_stat_statements is not available
+        """
+        if not self._is_connected:
+            return []
+
+        try:
+            # Check if pg_stat_statements is available
+            if not self.metrics_helper.check_pg_stat_statements_available(self._connection):
+                logger.warning(
+                    "pg_stat_statements extension not installed. "
+                    "Install with: CREATE EXTENSION pg_stat_statements"
+                )
+                return []
+
+            # Get slow queries
+            queries = self.metrics_helper.get_slow_queries_from_pg_stat_statements(
+                self._connection, threshold_ms=threshold_ms, limit=100
+            )
+            return queries
+
+        except Exception as e:
+            logger.warning(f"Failed to retrieve slow queries: {e}")
+            return []
+
+    def get_metrics(self) -> dict[str, Any]:
+        """Get database metrics from pg_stat_database.
+
+        Returns:
+            Dict with connection, transaction, and tuple statistics
+        """
+        if not self._is_connected:
+            return {}
+
+        try:
+            db_stats = self.metrics_helper.get_db_stats(self._connection)
+            cache_ratio = self.metrics_helper.get_cache_hit_ratio(self._connection)
+
+            result = {
+                **db_stats,
+                "cache_hit_ratio": cache_ratio if cache_ratio >= 0 else None,
+            }
+            return result
+
+        except Exception as e:
+            logger.warning(f"Failed to retrieve metrics: {e}")
+            return {}
+
+    def get_engine_info(self) -> dict[str, Any]:
+        """Get PostgreSQL version and configuration.
+
+        Returns:
+            Dict with version and configuration settings
+        """
+        if not self._is_connected:
+            return {}
+
+        try:
+            with self._connection.cursor() as cursor:
+                # Get version
+                cursor.execute("SELECT version()")
+                version_string = cursor.fetchone()[0]
+
+                # Get settings
+                settings = self.metrics_helper.get_settings(
+                    self._connection,
+                    [
+                        "max_connections",
+                        "shared_buffers",
+                        "effective_cache_size",
+                        "work_mem",
+                    ],
+                )
+
+                return {
+                    "version": version_string,
+                    "engine": "postgresql",
+                    **settings,
+                }
+
+        except Exception as e:
+            logger.warning(f"Failed to retrieve engine info: {e}")
+            return {}

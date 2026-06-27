@@ -1,0 +1,8 @@
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+cdcart_data.db
+cdcart_data.db-journal
+*.log
+logs/

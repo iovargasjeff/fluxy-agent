@@ -1,0 +1,49 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js y Builds
+.next/
+out/
+build/
+dist/
+
+# Builds y caches
+.turbo/
+
+# Playwright — auth session & test artifacts
+.playwright/
+frontend-app/playwright-report/
+frontend-app/test-results/
+
+# Variables de entorno (¡CRÍTICO PARA SUPABASE!)
+.env
+.env.*.local
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# SO y Editores
+.DS_Store
+.vscode/
+.idea/
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
