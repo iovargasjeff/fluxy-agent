@@ -74,6 +74,18 @@ export class FluxyLocalApiClient {
     return this.post('/api/v1/generate/export', input);
   }
 
+  listSkills() {
+    return this.get('/api/v1/skills');
+  }
+
+  resolveSkills(input: unknown) {
+    return this.post('/api/v1/skills/resolve', input);
+  }
+
+  runSkill(input: unknown) {
+    return this.post('/api/v1/skills/run', input);
+  }
+
   private async get(path: string) {
     const response = await this.fetcher(`${this.baseUrl}${path}`);
     return this.parse(response);

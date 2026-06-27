@@ -1,0 +1,13 @@
+id: safe_migration_basic
+name: Safe Migration Basic
+version: 1.0.0
+author: Fluxy
+license: free
+category: safety
+risk_level: high
+engines:
+  - postgresql
+requires_approval: true
+requires_backup: true
+requires_sandbox: true
+default_enabled: true

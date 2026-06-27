@@ -216,3 +216,94 @@ class ParseSQLResponse(BaseModel):
     schema: Optional[DatabaseSchema] = None
     warnings: List[str] = []
     error: Optional[str] = None
+
+
+class SkillMetadata(BaseModel):
+    id: str
+    name: str
+    version: str = "1.0.0"
+    author: str = "Fluxy"
+    license: str = "free"
+    category: str
+    engines: List[str] = []
+    min_engine_version: Optional[str] = None
+    max_engine_version: Optional[str] = None
+    risk_level: str = "low"
+    requires_approval: bool = False
+    requires_backup: bool = False
+    requires_sandbox: bool = False
+    default_enabled: bool = True
+
+
+class Artifact(BaseModel):
+    id: str
+    type: str
+    title: str
+    content: str
+
+
+class SkillResolveRequest(BaseModel):
+    profile: DatabaseProfile
+
+
+class SkillRunRequest(BaseModel):
+    skill_id: str
+    profile: Optional[DatabaseProfile] = None
+    instruction: Optional[str] = None
+    input: Dict[str, Any] = {}
+    human_approved: bool = False
+
+
+class SkillRunResponse(BaseModel):
+    run_id: str
+    skill_id: str
+    status: str
+    message: str
+    artifacts: List[Artifact] = []
+    policy: Optional[PolicyCheckResponse] = None
+
+
+class ToolStatus(BaseModel):
+    name: str
+    available: bool
+    path: Optional[str] = None
+
+
+class BackupRequest(BaseModel):
+    connection: ConexionRequest
+    output_dir: Optional[str] = None
+
+
+class BackupResponse(BaseModel):
+    status: str
+    message: str
+    backup_id: Optional[str] = None
+    path: Optional[str] = None
+    tool: ToolStatus
+
+
+class SandboxRequest(BaseModel):
+    engine_version: Optional[str] = None
+    database_name: str = "fluxy_sandbox"
+
+
+class SandboxResponse(BaseModel):
+    status: str
+    message: str
+    sandbox_id: Optional[str] = None
+    docker: ToolStatus
+    fallback: Optional[str] = None
+
+
+class McpRpcRequest(BaseModel):
+    jsonrpc: str = "2.0"
+    id: Optional[Any] = None
+    method: str
+    params: Dict[str, Any] = {}
+
+
+class McpRpcResponse(BaseModel):
+    jsonrpc: str = "2.0"
+    id: Optional[Any] = None
+    result: Optional[Any] = None
+    error: Optional[Dict[str, Any]] = None

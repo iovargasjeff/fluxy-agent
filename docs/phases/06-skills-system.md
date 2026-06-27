@@ -49,7 +49,15 @@ default_enabled: true
 
 ## Exit Criteria
 
-- Skills can be listed.
-- Compatible skills can be resolved for a database profile.
-- A skill can run and produce artifacts.
+- Skills can be listed. Done through `/api/v1/skills`.
+- Compatible skills can be resolved for a database profile. Done through `/api/v1/skills/resolve`.
+- A skill can run and produce artifacts. Done through `/api/v1/skills/run`.
 
+## Current Status
+
+Phase 06 is implemented as a first skill runtime. Official skills are free and represented both in the sidecar registry and in `skills/official`. The runner returns safe artifacts for low-risk skills and returns policy requirements for risky skills.
+
+## Verification
+
+- `python -m py_compile services/local-sidecar/backend/skills/registry.py services/local-sidecar/backend/skills/runner.py services/local-sidecar/backend/api/skills_router.py` passes.
+- Smoke test verifies list, resolve and safe skill run behavior.
