@@ -14,6 +14,7 @@
     "lint:web": "pnpm --filter @fluxy/web lint",
     "lint:api": "pnpm --filter @fluxy/api lint",
     "typecheck": "pnpm --recursive --if-present run lint",
+    "mcp:desktop": "node scripts/fluxy-mcp-stdio.mjs",
     "verify:mvp": "powershell -ExecutionPolicy Bypass -File scripts/verify-mvp.ps1"
   },
   "engines": {
