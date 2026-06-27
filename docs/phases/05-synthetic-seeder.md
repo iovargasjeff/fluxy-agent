@@ -24,8 +24,19 @@ Turn the rescued data generator into Fluxy's internal `seed_data` skill.
 
 ## Exit Criteria
 
-- User can preview synthetic rows.
-- User can export SQL, CSV or JSON.
-- PostgreSQL SQL output uses correct quoting.
-- No direct insert happens without explicit policy approval.
+- User can preview synthetic rows. Done through `/api/v1/generate/preview`.
+- User can export SQL, CSV or JSON. Done through `/api/v1/generate/export`.
+- PostgreSQL SQL output uses correct quoting. Done.
+- Deterministic seed support exists. Done.
+- Column rules exist. Done.
+- Domain presets exist for ecommerce, clinic, booking and inventory. Done.
+- No direct insert happens without explicit policy approval. Done in Phase 04.
 
+## Current Status
+
+Phase 05 is implemented as the first Synthetic Seeder baseline. It supports reproducible generation, per-column generation rules, domain presets and dialect-aware SQL exports.
+
+## Verification
+
+- `python -m py_compile services/local-sidecar/backend/generators/data_generator.py services/local-sidecar/backend/generators/exporters.py services/local-sidecar/backend/api/generator_router.py` passes.
+- A local smoke script verifies deterministic seed output and PostgreSQL identifier quoting.

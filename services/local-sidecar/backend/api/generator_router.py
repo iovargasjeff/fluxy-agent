@@ -31,7 +31,7 @@ def generate_preview(req: GeneratePreviewRequest):
             tc_copy.record_count = min(tc.record_count, req.preview_rows)
             preview_configs.append(tc_copy)
             
-    generator = DataGenerator(locale=req.locale or "es_ES")
+    generator = DataGenerator(locale=req.locale or "es_ES", seed=req.seed, domain=req.domain)
     
     try:
         data = generator.generate(req.schema, preview_configs)
@@ -54,7 +54,7 @@ def export_data(req: ExportRequest):
     """
     Genera los datos completos y los exporta al formato solicitado.
     """
-    generator = DataGenerator(locale=req.locale or "es_ES")
+    generator = DataGenerator(locale=req.locale or "es_ES", seed=req.seed, domain=req.domain)
     
     try:
         data = generator.generate(req.schema, req.table_configs)
@@ -67,7 +67,7 @@ def export_data(req: ExportRequest):
         ext = ""
         
         if req.format == "sql":
-            file_id = export_sql(data, req.schema)
+            file_id = export_sql(data, req.schema, dialect=req.dialect)
             ext = "sql"
         elif req.format == "csv":
             file_id = export_csv(data)

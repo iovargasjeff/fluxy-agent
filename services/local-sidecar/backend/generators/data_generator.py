@@ -7,12 +7,15 @@ from typing import Dict, List, Any, Set
 from collections import defaultdict, deque
 from faker import Faker
 from backend.models.schemas import DatabaseSchema, TableGenerationConfig
+from backend.generators.domain_presets import get_domain_rule
 from backend.generators.faker_mappings import get_faker_method_for_column
 
 class DataGenerator:
-    def __init__(self, locale: str = "es_ES"):
+    def __init__(self, locale: str = "es_ES", seed: int | None = None, domain: str | None = None):
         self.fake = Faker(locale)
-        # Set a fixed seed per session could be added later for reproducibility
+        self.domain = domain
+        if seed is not None:
+            self.fake.seed_instance(seed)
 
     def generate(self, schema: DatabaseSchema, table_configs: List[TableGenerationConfig], pk_offsets: Dict[str, int] = None) -> Dict[str, Dict[str, Any]]:
         """
@@ -49,7 +52,13 @@ class DataGenerator:
             # Preparar generadores por columna
             generators = {}
             for col in table_schema.columns:
-                if col.foreign_key and col.foreign_key["table"] in generated_pks:
+                explicit_rule = config_map[table_name].column_rules.get(col.name)
+                domain_rule = get_domain_rule(self.domain, col.name)
+                if explicit_rule:
+                    generators[col.name] = self._generator_from_rule(explicit_rule, col.name, col.data_type)
+                elif domain_rule:
+                    generators[col.name] = self._generator_from_rule(domain_rule, col.name, col.data_type)
+                elif col.foreign_key and col.foreign_key["table"] in generated_pks:
                     fk_table = col.foreign_key["table"]
                     fk_col = col.foreign_key["column"]
                     if generated_pks[fk_table][fk_col]:
@@ -113,6 +122,26 @@ class DataGenerator:
             }
 
         return result
+
+    def _generator_from_rule(self, rule: Dict[str, Any], column_name: str, data_type: str):
+        if "constant" in rule:
+            return lambda value=rule["constant"]: value
+        if "choices" in rule and rule["choices"]:
+            return lambda choices=rule["choices"]: self.fake.random_element(choices)
+        if "faker" in rule and hasattr(self.fake, rule["faker"]):
+            return getattr(self.fake, rule["faker"])
+        if "min" in rule or "max" in rule:
+            min_value = rule.get("min", 0)
+            max_value = rule.get("max", 1000)
+            precision = rule.get("precision")
+            is_float = any(t in data_type.upper() for t in ["DECIMAL", "NUMERIC", "FLOAT", "DOUBLE", "REAL"])
+            if precision is not None or is_float:
+                return lambda: round(
+                    self.fake.pyfloat(min_value=min_value, max_value=max_value, positive=min_value >= 0),
+                    int(precision or 2),
+                )
+            return lambda: self.fake.random_int(min=min_value, max=max_value)
+        return get_faker_method_for_column(self.fake, column_name, data_type)
 
     def _topological_sort(self, schema: DatabaseSchema, tables: List[str]) -> List[str]:
         """

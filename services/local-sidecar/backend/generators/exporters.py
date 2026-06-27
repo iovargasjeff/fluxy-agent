@@ -13,7 +13,16 @@ from backend.core.config import settings
 TEMP_DIR = settings.TEMP_DIR
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-def export_sql(data: Dict[str, Dict[str, Any]], schema: DatabaseSchema) -> str:
+def quote_identifier(identifier: str, dialect: str) -> str:
+    normalized = (dialect or "postgresql").lower()
+    if normalized == "mysql":
+        return f"`{identifier.replace('`', '``')}`"
+    if normalized == "sqlserver":
+        return f"[{identifier.replace(']', ']]')}]"
+    return f'"{identifier.replace(chr(34), chr(34) * 2)}"'
+
+
+def export_sql(data: Dict[str, Dict[str, Any]], schema: DatabaseSchema, dialect: str | None = None) -> str:
     """
     Genera un archivo .sql con sentencias INSERT.
     """
@@ -21,7 +30,9 @@ def export_sql(data: Dict[str, Dict[str, Any]], schema: DatabaseSchema) -> str:
     filepath = os.path.join(TEMP_DIR, f"{file_id}.sql")
     
     with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(f"-- Datos generados para {schema.database_name}\n\n")
+        resolved_dialect = dialect or schema.motor or "postgresql"
+        f.write(f"-- Datos generados para {schema.database_name}\n")
+        f.write(f"-- Dialecto: {resolved_dialect}\n\n")
         
         for table_name, table_data in data.items():
             columns = table_data["columns"]
@@ -31,7 +42,8 @@ def export_sql(data: Dict[str, Dict[str, Any]], schema: DatabaseSchema) -> str:
                 continue
                 
             f.write(f"-- Tabla: {table_name}\n")
-            cols_str = ", ".join(f"`{c}`" for c in columns)
+            table_identifier = quote_identifier(table_name, resolved_dialect)
+            cols_str = ", ".join(quote_identifier(c, resolved_dialect) for c in columns)
             
             for row in rows:
                 vals = []
@@ -48,7 +60,7 @@ def export_sql(data: Dict[str, Dict[str, Any]], schema: DatabaseSchema) -> str:
                         vals.append(f"'{escaped_val}'")
                         
                 vals_str = ", ".join(vals)
-                f.write(f"INSERT INTO `{table_name}` ({cols_str}) VALUES ({vals_str});\n")
+                f.write(f"INSERT INTO {table_identifier} ({cols_str}) VALUES ({vals_str});\n")
             
             f.write("\n")
             

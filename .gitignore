@@ -10,6 +10,8 @@ out/
 .turbo/
 .vercel/
 coverage/
+tmp_exports/
+services/local-sidecar/tmp_exports/
 
 # Python
 __pycache__/
