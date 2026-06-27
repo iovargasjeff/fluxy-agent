@@ -1,6 +1,6 @@
 # Salvage Inventory
 
-This document explains what must be saved from the rescued repositories inside `base/`.
+This document records what was saved from the rescued repositories that originally lived inside `base/`.
 
 ## Source Snapshots
 
@@ -105,7 +105,7 @@ Future target: `apps/desktop/backend-python`.
 base/salvage/synthetic-data/backend
 ```
 
-Future target: selected modules inside `apps/desktop/backend-python` and `skills/official/seed_data`.
+Future target: selected modules inside `apps/desktop/backend-python` and the installable `seed_data` skill catalog entry.
 
 ```txt
 base/salvage/docs-reference/data-generator-docs
@@ -115,5 +115,4 @@ Future target: curated docs under `docs/product`, `docs/architecture` and `docs/
 
 ## Final Rule
 
-`base/` is not the product. It is the rescue area. Code becomes real only after it is moved into `apps/` or `skills/` and adapted to Fluxy rules.
-
+`base/` was only the rescue area and is no longer part of the active product tree. Code is real only after it is moved into `apps/` or persisted through the Fluxy skill catalog and adapted to Fluxy rules.

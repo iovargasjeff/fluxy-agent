@@ -23,10 +23,9 @@ Prepare a product demo and remove obsolete staging material only after the new r
 
 ## Cleanup Rules
 
-- Do not delete old source repos until Phase 10 exits.
-- Keep `base/sources` until equivalent code exists in final folders.
-- Keep `base/salvage` until the MVP demo passes.
-- After cleanup, keep a short `docs/archive/sources.md` with original repo references.
+- Old source repos and rescue snapshots can be deleted after their useful code exists in final folders.
+- The active repo should not keep `base/`.
+- Keep a short `docs/archive/sources.md` with original repo references.
 
 ## Exit Criteria
 
@@ -36,7 +35,7 @@ Prepare a product demo and remove obsolete staging material only after the new r
 - NestJS API starts. Build passes with `pnpm run build:api`.
 - PostgreSQL demo passes. Safety tooling and fallback smoke tests pass; real database demo depends on local PostgreSQL credentials.
 - MCP demo passes. Smoke test verifies safe run and risky approval behavior.
-- Old repos can be archived or deleted confidently. Keep `base/` until manual end-to-end demo is completed, then follow `docs/archive/sources.md`.
+- Old repos can be archived or deleted confidently. `base/` has been removed from the active product tree; `docs/archive/sources.md` remains as the historical reference.
 
 ## Current Status
 

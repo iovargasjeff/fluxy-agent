@@ -33,7 +33,6 @@ base/salvage/synthetic-data/backend
 base/salvage/docs-reference/data-generator-docs
 ```
 
-## Cleanup Guidance
+## Cleanup Status
 
-Keep `base/` until the MVP demo has been run manually end to end. After that, it can be archived outside the active product tree or replaced with this reference document and release tags.
-
+`base/` was removed from the active product tree after its useful code was moved into `apps/`. This document remains only as a historical map of where the rescued code originally came from.

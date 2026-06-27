@@ -9,7 +9,7 @@ This checklist turns the phase plan into a working app plan.
 - Create `apps/web/backend-api`.
 - Create `apps/desktop/backend-python`.
 - Defer shared TypeScript packages until web and desktop need real shared contracts.
-- Create `skills/official`.
+- Create skill catalog persistence and per-user/per-profile enablement.
 - Add root workspace scripts.
 - Add environment examples for web, API and local sidecar.
 
@@ -97,7 +97,7 @@ Done when:
 
 ## Synthetic Seeder
 
-- Port useful generator logic from `base/salvage/synthetic-data/backend`.
+- Keep the rescued synthetic generator logic already moved into `apps/desktop/backend-python`.
 - Add deterministic seeds.
 - Add preview mode.
 - Add SQL dialect quoting.
@@ -114,8 +114,9 @@ Done when:
 ## Skills
 
 - Define skill metadata.
-- Add official skills folder.
-- Add registry.
+- Add installable skill catalog.
+- Add per-user/per-profile active state.
+- Add registry backed by local storage first, then cloud sync for safe metadata.
 - Add resolver.
 - Add runner.
 - Add artifacts.
@@ -124,6 +125,8 @@ Done when:
 Done when:
 
 - App can list skills.
+- User can download/install a skill.
+- User can activate or deactivate a skill from Profile or Skill Hub.
 - App can resolve skills by database engine/version.
 - A skill can run and produce a report or artifact.
 

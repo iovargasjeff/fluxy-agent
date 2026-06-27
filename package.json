@@ -2,7 +2,7 @@
   "name": "fluxy-agent",
   "version": "0.1.0",
   "private": true,
-  "description": "Fluxy monorepo for web, desktop, local sidecar, skills and agent bridge.",
+  "description": "Fluxy monorepo for web, desktop, cloud API and local sidecar.",
   "scripts": {
     "dev:web": "pnpm --filter @fluxy/web dev",
     "dev:api": "pnpm --filter @fluxy/api dev",

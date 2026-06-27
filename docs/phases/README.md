@@ -21,11 +21,8 @@ fluxy-agent/
     desktop/
       frontend-app/
       backend-python/
-  skills/
-    official/
   docs/
   scripts/
-  base/
 ```
 
 ## Phase Order
@@ -54,5 +51,5 @@ fluxy-agent/
 - Desktop works offline.
 - Direct writes to real databases are blocked by default.
 - Risky actions require policy, backup, sandbox and human approval when applicable.
-- Skills are free in the first version.
+- Skills are free in the first version and managed through app storage, not a root source folder.
 - Team Safety monetizes governance, policies, approvals, audit and private distribution, not basic skill access.

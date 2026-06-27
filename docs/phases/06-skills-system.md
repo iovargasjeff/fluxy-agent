@@ -2,17 +2,19 @@
 
 ## Goal
 
-Create free, installable and versioned Fluxy skills.
+Create free, installable, versioned and user-manageable Fluxy skills.
 
 ## Tasks
 
-- Create `skills/official`.
 - Create skill metadata format.
-- Create skill registry.
+- Create skill catalog storage.
+- Create installed-skill storage per user/profile.
+- Create activation/deactivation state per user/profile.
+- Create skill registry backed by storage instead of a root `skills/official` folder.
 - Create skill resolver by engine, version, environment and local capabilities.
 - Create skill runner.
 - Create artifact model for reports, SQL scripts, diagrams, backups and sandbox results.
-- Add Skill Hub UI later, but define metadata now.
+- Add Skill Hub/Profile UI for download, install, activate and deactivate.
 
 ## Initial Skills
 
@@ -50,12 +52,14 @@ default_enabled: true
 ## Exit Criteria
 
 - Skills can be listed. Done through `/api/v1/skills`.
+- Skills can be installed/downloaded by the user.
+- Skills can be activated or deactivated by the user.
 - Compatible skills can be resolved for a database profile. Done through `/api/v1/skills/resolve`.
 - A skill can run and produce artifacts. Done through `/api/v1/skills/run`.
 
 ## Current Status
 
-Phase 06 is implemented as a first skill runtime. Official skills are free and represented both in the sidecar registry and in `skills/official`. The runner returns safe artifacts for low-risk skills and returns policy requirements for risky skills.
+Phase 06 currently has a first local runtime with built-in metadata in the sidecar registry. The product target is a persisted skill catalog with installed/enabled state per user or database profile. The runner returns safe artifacts for low-risk skills and returns policy requirements for risky skills.
 
 ## Verification
 

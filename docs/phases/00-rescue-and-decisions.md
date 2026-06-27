@@ -34,7 +34,6 @@ Preserve every useful piece before deleting old local repositories.
 
 ## Exit Criteria
 
-- `base/sources` contains the three source snapshots.
-- `base/salvage` contains separated frontend, cloud backend, desktop, local sidecar, synthetic data and docs buckets.
-- No source repo has been deleted yet.
-
+- Historical source snapshots were saved long enough to move the useful code into `apps/`.
+- Separated frontend, cloud backend, desktop, local sidecar, synthetic data and docs buckets were reviewed.
+- The active product tree no longer keeps the rescue snapshots.
