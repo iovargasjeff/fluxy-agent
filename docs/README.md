@@ -5,6 +5,7 @@ Documentation in this repo is organized around implementation phases.
 - [Development phases](./phases/README.md)
 - [Salvage inventory](./salvage-inventory.md)
 - [Functional MVP checklist](./functional-mvp-checklist.md)
+- [MVP demo](./mvp-demo.md)
 - [Phase 00 - Rescue and decisions](./phases/00-rescue-and-decisions.md)
 - [Phase 01 - Monorepo foundation](./phases/01-monorepo-foundation.md)
 - [Phase 02 - Web and cloud API](./phases/02-web-and-cloud-api.md)

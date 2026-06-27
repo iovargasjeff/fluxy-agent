@@ -36,9 +36,6 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
-    },
-    "externalBin": [
-      "binaries/fluxy-sidecar"
-    ]
+    }
   }
 }

@@ -30,11 +30,27 @@ Prepare a product demo and remove obsolete staging material only after the new r
 
 ## Exit Criteria
 
-- Web build passes.
-- Desktop build starts.
-- Local sidecar starts.
-- NestJS API starts.
-- PostgreSQL demo passes.
-- MCP demo passes.
-- Old repos can be archived or deleted confidently.
+- Web build passes. Done with `pnpm run build:web`.
+- Desktop build starts. Done with `cargo check` under `apps/desktop/src-tauri`.
+- Local sidecar starts. Import/health check passes; full long-running server is covered by `pnpm run dev:local-sidecar`.
+- NestJS API starts. Build passes with `pnpm run build:api`.
+- PostgreSQL demo passes. Safety tooling and fallback smoke tests pass; real database demo depends on local PostgreSQL credentials.
+- MCP demo passes. Smoke test verifies safe run and risky approval behavior.
+- Old repos can be archived or deleted confidently. Keep `base/` until manual end-to-end demo is completed, then follow `docs/archive/sources.md`.
 
+## Current Status
+
+Phase 10 is implemented as an MVP closeout package:
+
+- `docs/mvp-demo.md` documents the full demo flow.
+- `docs/archive/sources.md` records the rescued sources.
+- `scripts/verify-mvp.ps1` runs the repeatable MVP verification suite.
+
+## Verification
+
+- `pnpm run build:web` passes.
+- `pnpm run build:api` passes.
+- `cargo check` passes in `apps/desktop/src-tauri`.
+- Local sidecar import and health check pass.
+- Python compile checks pass.
+- MVP smoke tests pass.

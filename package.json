@@ -11,7 +11,8 @@
     "build:api": "pnpm --filter @fluxy/api build",
     "lint:web": "pnpm --filter @fluxy/web lint",
     "lint:api": "pnpm --filter @fluxy/api lint",
-    "typecheck": "pnpm --recursive --if-present run lint"
+    "typecheck": "pnpm --recursive --if-present run lint",
+    "verify:mvp": "powershell -ExecutionPolicy Bypass -File scripts/verify-mvp.ps1"
   },
   "engines": {
     "node": ">=20"
