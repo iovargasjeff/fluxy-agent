@@ -56,10 +56,30 @@ def get_connector(req: ConexionRequest) -> BaseConnector:
     """
     engine = detect_engine(req.puerto, req.motor)
     connector_class = ENGINE_CLASSES[engine]
+    
+    password = req.password
+    if not password:
+        # Intentar cargar desde la base de datos local
+        try:
+            from backend.core.database import SessionLocal
+            from backend.models.models import Conexion
+            from backend.core.encryption import decrypt_password
+            with SessionLocal() as db:
+                conexion = db.query(Conexion).filter(
+                    Conexion.host == req.host,
+                    Conexion.puerto == req.puerto,
+                    Conexion.nombre_bd == req.nombre_bd,
+                    Conexion.usuario_db == req.usuario
+                ).first()
+                if conexion and conexion.password_db:
+                    password = decrypt_password(conexion.password_db)
+        except Exception as e:
+            print(f"Error loading saved connection password: {e}")
+
     return connector_class(
         host=req.host,
         port=req.puerto,
         user=req.usuario,
-        password=req.password,
+        password=password,
         database=req.nombre_bd
     )

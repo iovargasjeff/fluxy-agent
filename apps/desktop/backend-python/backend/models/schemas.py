@@ -57,6 +57,7 @@ class ConexionGuardadaResponse(BaseModel):
     alias: Optional[str] = None
     engine: str
     database: str
+    host: str
     host_masked: str
     port: int
     username: Optional[str] = None

@@ -438,3 +438,22 @@ export const analyzerAPI = {
       body: JSON.stringify({ ...payload, connection: mapConnectionForAnalyzer(payload.connection) }),
     }),
 };
+
+export interface SavedConnection {
+  connection_id: string;
+  alias: string;
+  engine: string;
+  database: string;
+  host: string;
+  host_masked: string;
+  port: number;
+  username: string;
+  has_credentials: boolean;
+  environment: string;
+  created_at: string;
+}
+
+export const connectorAPI = {
+  listSaved: () => apiCall<SavedConnection[]>('/connect/saved'),
+  deleteSaved: (id: string) => apiCall<{ message: string }>(`/connect/saved/${id}`, { method: 'DELETE' }),
+};

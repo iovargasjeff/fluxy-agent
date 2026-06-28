@@ -1,16 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Database, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { Database, Link as LinkIcon, AlertCircle, Trash2, Plug, Server } from 'lucide-react';
 import { useConnectionStore } from '@/lib/store/useConnectionStore';
-import { generatorAPI } from '@/lib/api/client';
+import { generatorAPI, connectorAPI, type SavedConnection } from '@/lib/api/client';
 
 export default function ConnectPage() {
   const router = useRouter();
   const { setActiveConnection } = useConnectionStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [savedConnections, setSavedConnections] = useState<SavedConnection[]>([]);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(true);
 
   const [config, setConfig] = useState({
     engine: 'postgresql',
@@ -21,13 +24,62 @@ export default function ConnectPage() {
     database: ''
   });
 
+  useEffect(() => {
+    fetchSaved();
+  }, []);
+
+  const fetchSaved = async () => {
+    setIsLoadingSaved(true);
+    try {
+      const saved = await connectorAPI.listSaved();
+      setSavedConnections(saved);
+    } catch (err) {
+      console.error('Error fetching saved connections:', err);
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  };
+
+  const handleDeleteSaved = async (id: string) => {
+    if (!confirm('¿Seguro que quieres eliminar esta conexión?')) return;
+    try {
+      await connectorAPI.deleteSaved(id);
+      await fetchSaved();
+    } catch (err) {
+      console.error('Error deleting connection:', err);
+      alert('Error eliminando la conexión');
+    }
+  };
+
+  const handleConnectSaved = async (saved: SavedConnection) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const savedConfig = {
+        engine: saved.engine,
+        host: saved.host,
+        port: saved.port.toString(),
+        username: saved.username || '',
+        password: '', // El backend auto-resolverá la contraseña porque está vacío
+        database: saved.database
+      };
+      
+      await generatorAPI.testConnection(savedConfig);
+      setActiveConnection(savedConfig);
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo conectar a la base de datos guardada.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      // Intentar validar la conexión usando el sidecar
       await generatorAPI.testConnection(config);
       setActiveConnection(config);
       router.push('/dashboard');
@@ -39,16 +91,68 @@ export default function ConnectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1E] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#111827] border border-[#1E2A45] rounded-2xl shadow-2xl p-8">
-        
+    <div className="min-h-screen bg-[#0A0F1E] flex flex-col md:flex-row items-start justify-center p-4 md:p-8 gap-8">
+      
+      {/* Panel Izquierdo: Conexiones Guardadas */}
+      <div className="w-full md:w-1/3 max-w-md flex flex-col gap-4">
+        <div className="bg-[#111827] border border-[#1E2A45] rounded-2xl shadow-2xl p-6 flex flex-col h-full min-h-[400px]">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1E2A45]">
+            <Server className="w-6 h-6 text-blue-500" />
+            <h2 className="text-lg font-bold text-white">Conexiones Guardadas</h2>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-3">
+            {isLoadingSaved ? (
+              <div className="flex items-center justify-center flex-1 text-gray-400">
+                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : savedConnections.length === 0 ? (
+              <div className="flex flex-col items-center justify-center flex-1 text-center py-8">
+                <Plug className="w-10 h-10 text-gray-600 mb-3" />
+                <p className="text-sm text-gray-500">No hay conexiones guardadas.</p>
+                <p className="text-xs text-gray-600 mt-1">Las nuevas conexiones se guardarán automáticamente aquí.</p>
+              </div>
+            ) : (
+              savedConnections.map((conn) => (
+                <div key={conn.connection_id} className="bg-[#0A0F1E] border border-[#1E2A45] rounded-xl p-4 flex flex-col gap-3 hover:border-blue-500/50 transition-colors group">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">{conn.alias || conn.database}</h3>
+                      <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">{conn.engine} • {conn.host_masked}:{conn.port}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleDeleteSaved(conn.connection_id)}
+                      className="text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Eliminar conexión"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <button 
+                    onClick={() => handleConnectSaved(conn)}
+                    disabled={isLoading}
+                    className="w-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 text-xs font-medium py-2 rounded-lg border border-blue-500/20 hover:border-blue-500/50 transition-all flex justify-center items-center gap-2"
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    Usar esta conexión
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Panel Derecho: Nueva Conexión */}
+      <div className="w-full md:w-2/3 max-w-lg bg-[#111827] border border-[#1E2A45] rounded-2xl shadow-2xl p-8">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
             <Database className="w-8 h-8 text-blue-500" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Conectar a Base de Datos</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">Nueva Conexión</h1>
           <p className="text-sm text-gray-400">
-            Ingresa tus credenciales para comenzar a usar las herramientas de Fluxy.
+            Ingresa tus credenciales para conectar una nueva base de datos a Fluxy.
           </p>
         </div>
 
@@ -150,7 +254,6 @@ export default function ConnectPage() {
             Establecer Conexión
           </button>
         </form>
-
       </div>
     </div>
   );

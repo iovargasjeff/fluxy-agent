@@ -44,6 +44,7 @@ def connection_profile_from_model(c: Conexion) -> ConexionGuardadaResponse:
         alias=c.nombre_alias,
         engine=c.motor_bd,
         database=c.nombre_bd,
+        host=c.host,
         host_masked=mask_host(c.host),
         port=c.puerto,
         username=c.usuario_db,
