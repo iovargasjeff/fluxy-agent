@@ -311,10 +311,23 @@ def get_diagram(diagram_id: int, db: Session = Depends(get_db)):
 
 @router.post("/diagrams", response_model=DiagramResponse)
 def create_diagram(req: DiagramCreate, db: Session = Depends(get_db)):
-    raise HTTPException(
-        status_code=400,
-        detail="Diagrams must be generated from a database connection.",
+    project = db.query(Project).filter(Project.id == req.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    diagram = Diagram(
+        name=req.name,
+        schema_json=req.schema_json or json.dumps({"nodes": [], "edges": []}),
+        sql_content=req.sql_content or "",
+        active_dialect=req.active_dialect or "postgresql",
+        selected_tables_json="[]",
+        project_id=req.project_id,
     )
+    db.add(diagram)
+    project.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(diagram)
+    return diagram
 
 @router.patch("/diagrams/{diagram_id}", response_model=DiagramResponse)
 def update_diagram(diagram_id: int, req: DiagramUpdate, db: Session = Depends(get_db)):
@@ -324,11 +337,14 @@ def update_diagram(diagram_id: int, req: DiagramUpdate, db: Session = Depends(ge
     
     if req.name is not None:
         diagram.name = req.name
-    if req.schema_json is not None or req.sql_content is not None or req.active_dialect is not None:
-        raise HTTPException(
-            status_code=400,
-            detail="Database-derived diagram structure is read-only. Refresh it from the database instead.",
-        )
+    if req.schema_json is not None:
+        diagram.schema_json = req.schema_json
+    if req.sql_content is not None:
+        diagram.sql_content = req.sql_content
+    if req.active_dialect is not None:
+        diagram.active_dialect = req.active_dialect
+    diagram.updated_at = datetime.utcnow()
+    diagram.project.updated_at = datetime.utcnow()
         
     db.commit()
     db.refresh(diagram)

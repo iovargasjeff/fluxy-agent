@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { DatabaseConnection } from '@/lib/store/useConnectionStore';
 import type { FlowJson } from '@/lib/flow-types';
-import type { EditorDialect } from '@/lib/editor-schema';
+import { serializeSchema, type EditorDialect } from '@/lib/editor-schema';
 
 let API_ROOT = 'http://127.0.0.1:8000';
 let API_BASE = `${API_ROOT}/api/v1`;
@@ -235,18 +235,42 @@ export const diagramsAPI = {
         connection: mapConnectionForGenerator(payload.connection),
       }),
     }),
-  saveLayoutByProject: async (projectId: string, flowJson: FlowJson) => {
+  saveDiagramByProject: async (
+    projectId: string,
+    flowJson: FlowJson,
+    options: { name?: string; sqlContent?: string; activeDialect?: EditorDialect } = {},
+  ) => {
     const diagrams = await apiCall<DiagramResponse[]>(`/diagrams?projectId=${projectId}`);
     const diagram = diagrams[0];
-    if (!diagram) throw new Error('Diagram not found');
-    const positions = Object.fromEntries(
-      (flowJson.nodes ?? []).map((node) => [node.id, node.position]),
-    );
-    return apiCall<DiagramResponse>(`/diagrams/${diagram.id}/layout`, {
+    const activeDialect = options.activeDialect ?? 'postgresql';
+    const sqlContent =
+      options.sqlContent ?? serializeSchema(flowJson.nodes ?? [], activeDialect, flowJson.edges ?? []);
+
+    if (!diagram) {
+      return apiCall<DiagramResponse>('/diagrams', {
+        method: 'POST',
+        body: JSON.stringify({
+          project_id: Number(projectId),
+          name: options.name ?? 'Diagrama Principal',
+          schema_json: JSON.stringify(flowJson),
+          sql_content: sqlContent,
+          active_dialect: activeDialect,
+        }),
+      });
+    }
+
+    return apiCall<DiagramResponse>(`/diagrams/${diagram.id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ positions, viewport: flowJson.viewport }),
+      body: JSON.stringify({
+        name: options.name,
+        schema_json: JSON.stringify(flowJson),
+        sql_content: sqlContent,
+        active_dialect: activeDialect,
+      }),
     });
   },
+  saveLayoutByProject: async (projectId: string, flowJson: FlowJson) =>
+    diagramsAPI.saveDiagramByProject(projectId, flowJson),
   refreshByProject: async (projectId: string, connection: DatabaseConnection) => {
     const diagrams = await apiCall<DiagramResponse[]>(`/diagrams?projectId=${projectId}`);
     const diagram = diagrams[0];

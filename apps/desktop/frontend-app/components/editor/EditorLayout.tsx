@@ -56,6 +56,7 @@ function EditorLayoutInner({
   const setDialect = useEditorStore((state) => state.setDialect)
   const setSqlValue = useEditorStore((state) => state.setSqlValue)
   const setNodesAndEdges = useEditorStore((state) => state.setNodesAndEdges)
+  const sqlValue = useEditorStore((state) => state.sqlValue)
 
   const [saving, setSaving] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -120,14 +121,14 @@ function EditorLayoutInner({
     if (!initialized.current) return
     if (saveTimer.current) window.clearTimeout(saveTimer.current)
     saveTimer.current = window.setTimeout(() => {
-      void saveDiagramAction({ projectId, flowJson: toObject() }).then((result) => {
+      void saveDiagramAction({ projectId, flowJson: toObject(), sqlContent: sqlValue, activeDialect: mode }).then((result) => {
         if (!result.error) setSavedLabel('Guardado automaticamente')
       })
     }, 900)
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current)
     }
-  }, [nodes, projectId, toObject])
+  }, [mode, nodes, projectId, sqlValue, toObject])
 
   async function handleBack() {
     if (saveTimer.current) window.clearTimeout(saveTimer.current)
@@ -144,6 +145,8 @@ function EditorLayoutInner({
       const result = await saveDiagramAction({
         projectId,
         flowJson: flowObject,
+        sqlContent: sqlValue,
+        activeDialect: mode,
       })
 
       if (result.error) {

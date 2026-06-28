@@ -22,7 +22,7 @@ interface EditorPanelProps {
 }
 
 export function EditorPanel({ mode }: EditorPanelProps) {
-  const { sqlValue } = useEditorStore()
+  const { sqlValue, setSqlValue } = useEditorStore()
   const { resolvedTheme } = useTheme()
 
   return (
@@ -40,9 +40,9 @@ export function EditorPanel({ mode }: EditorPanelProps) {
           language={mode === 'json' ? 'json' : 'sql'}
           theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
           value={sqlValue}
+          onChange={(value) => setSqlValue(value ?? '')}
           options={{
-            readOnly: true,
-            readOnlyMessage: { value: 'El SQL refleja el esquema real. Modifica la base de datos y actualiza el diagrama.' },
+            readOnly: false,
             minimap: { enabled: false },
             fontSize: 13,
             fontFamily: "'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace",
