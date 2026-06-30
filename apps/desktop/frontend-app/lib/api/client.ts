@@ -493,3 +493,79 @@ export const skillsAPI = {
 export const mcpAPI = {
   health: () => apiCall<{ status: string; protocol: string; tools: string[] }>('/mcp/health'),
 };
+
+export interface AgentMemoryItem {
+  id: number;
+  scope: string;
+  subject: string;
+  content: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SkillPermissionItem {
+  id: number;
+  skill_id: string;
+  can_read_schema: boolean;
+  can_generate_sql: boolean;
+  can_execute: boolean;
+  requires_approval: boolean;
+  environment: string;
+  updated_at: string;
+}
+
+export interface ApprovalItem {
+  id: number;
+  title: string;
+  risk_level: string;
+  status: string;
+  requested_by?: string | null;
+  details: JsonObject;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SchemaDecisionItem {
+  id: number;
+  project_id?: string | null;
+  title: string;
+  decision: string;
+  rationale?: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface EnvironmentGuardItem {
+  id: number;
+  environment: string;
+  require_backup: boolean;
+  require_sandbox: boolean;
+  require_approval: boolean;
+  allow_direct_write: boolean;
+  updated_at: string;
+}
+
+export interface AgentToolsState {
+  memories: AgentMemoryItem[];
+  skill_permissions: SkillPermissionItem[];
+  approvals: ApprovalItem[];
+  decisions: SchemaDecisionItem[];
+  environment_guards: EnvironmentGuardItem[];
+}
+
+export const agentToolsAPI = {
+  state: () => apiCall<AgentToolsState>('/agent-tools'),
+  createMemory: (payload: { scope: string; subject: string; content: string; tags: string[] }) =>
+    apiCall<AgentMemoryItem>('/agent-tools/memories', { method: 'POST', body: JSON.stringify(payload) }),
+  upsertSkillPermission: (payload: Omit<SkillPermissionItem, 'id' | 'updated_at'>) =>
+    apiCall<SkillPermissionItem>('/agent-tools/skill-permissions', { method: 'POST', body: JSON.stringify(payload) }),
+  createApproval: (payload: { title: string; risk_level: string; requested_by?: string; details?: JsonObject }) =>
+    apiCall<ApprovalItem>('/agent-tools/approvals', { method: 'POST', body: JSON.stringify(payload) }),
+  setApprovalStatus: (id: number, status: 'approved' | 'rejected' | 'pending') =>
+    apiCall<ApprovalItem>(`/agent-tools/approvals/${id}/${status}`, { method: 'PATCH' }),
+  createDecision: (payload: { project_id?: string; title: string; decision: string; rationale?: string; status: string }) =>
+    apiCall<SchemaDecisionItem>('/agent-tools/decisions', { method: 'POST', body: JSON.stringify(payload) }),
+  upsertEnvironmentGuard: (payload: Omit<EnvironmentGuardItem, 'id' | 'updated_at'>) =>
+    apiCall<EnvironmentGuardItem>('/agent-tools/environment-guards', { method: 'POST', body: JSON.stringify(payload) }),
+};

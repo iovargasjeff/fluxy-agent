@@ -119,3 +119,85 @@ export const userSkills = pgTable('user_skills', {
     unique('user_skills_user_id_skill_id_unique').on(table.userId, table.skillId)
   ];
 });
+
+export const agentMemories = pgTable('agent_memories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+  scope: text('scope').default('workspace').notNull(),
+  subject: text('subject').notNull(),
+  content: text('content').notNull(),
+  tags: text('tags').array().default(sql`ARRAY[]::text[]`).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const skillPermissions = pgTable('skill_permissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  skillId: text('skill_id').notNull().references(() => skillCatalog.id, { onDelete: 'cascade' }),
+  environment: text('environment').default('development').notNull(),
+  canReadSchema: boolean('can_read_schema').default(true).notNull(),
+  canGenerateSql: boolean('can_generate_sql').default(true).notNull(),
+  canExecute: boolean('can_execute').default(false).notNull(),
+  requiresApproval: boolean('requires_approval').default(true).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    unique('skill_permissions_user_skill_env_unique').on(table.userId, table.skillId, table.environment)
+  ];
+});
+
+export const approvalRequests = pgTable('approval_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  riskLevel: text('risk_level').default('medium').notNull(),
+  status: text('status').default('pending').notNull(),
+  requestedBy: uuid('requested_by').references(() => users.id, { onDelete: 'set null' }),
+  details: jsonb('details').$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    check('approval_requests_status_check', sql`${table.status} IN ('pending', 'approved', 'rejected')`)
+  ];
+});
+
+export const agentRuns = pgTable('agent_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  skillId: text('skill_id'),
+  status: text('status').notNull(),
+  input: jsonb('input').$type<Record<string, unknown>>().default({}),
+  output: jsonb('output').$type<Record<string, unknown>>().default({}),
+  rollbackPlan: text('rollback_plan'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const schemaDecisions = pgTable('schema_decisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  decision: text('decision').notNull(),
+  rationale: text('rationale'),
+  status: text('status').default('accepted').notNull(),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const environmentGuards = pgTable('environment_guards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  environment: text('environment').notNull(),
+  requireBackup: boolean('require_backup').default(false).notNull(),
+  requireSandbox: boolean('require_sandbox').default(false).notNull(),
+  requireApproval: boolean('require_approval').default(false).notNull(),
+  allowDirectWrite: boolean('allow_direct_write').default(true).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    unique('environment_guards_user_env_unique').on(table.userId, table.environment)
+  ];
+});

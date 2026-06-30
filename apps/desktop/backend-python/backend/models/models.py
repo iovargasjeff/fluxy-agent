@@ -78,3 +78,65 @@ class ReportArtifact(Base):
     content = Column(Text, nullable=False)
     audit_log_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class AgentMemory(Base):
+    __tablename__ = "agent_memories"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    scope = Column(String(50), nullable=False, default="workspace")
+    subject = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    tags_json = Column(Text, nullable=False, default="[]")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class SkillPermission(Base):
+    __tablename__ = "skill_permissions"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    skill_id = Column(String(100), nullable=False, index=True)
+    can_read_schema = Column(Boolean, nullable=False, default=True)
+    can_generate_sql = Column(Boolean, nullable=False, default=True)
+    can_execute = Column(Boolean, nullable=False, default=False)
+    requires_approval = Column(Boolean, nullable=False, default=True)
+    environment = Column(String(50), nullable=False, default="development")
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class ApprovalRequest(Base):
+    __tablename__ = "approval_requests"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    risk_level = Column(String(50), nullable=False, default="medium")
+    status = Column(String(50), nullable=False, default="pending")
+    requested_by = Column(String(100), nullable=True)
+    details_json = Column(Text, nullable=False, default="{}")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class SchemaDecision(Base):
+    __tablename__ = "schema_decisions"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    project_id = Column(String(100), nullable=True)
+    title = Column(String(255), nullable=False)
+    decision = Column(Text, nullable=False)
+    rationale = Column(Text, nullable=True)
+    status = Column(String(50), nullable=False, default="accepted")
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class EnvironmentGuard(Base):
+    __tablename__ = "environment_guards"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    environment = Column(String(50), nullable=False, unique=True)
+    require_backup = Column(Boolean, nullable=False, default=False)
+    require_sandbox = Column(Boolean, nullable=False, default=False)
+    require_approval = Column(Boolean, nullable=False, default=False)
+    allow_direct_write = Column(Boolean, nullable=False, default=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

@@ -386,3 +386,78 @@ class ReportArtifactResponse(BaseModel):
     content: str
     audit_log_id: Optional[int] = None
     created_at: datetime
+
+
+class AgentMemoryRequest(BaseModel):
+    scope: str = "workspace"
+    subject: str
+    content: str
+    tags: List[str] = []
+
+
+class AgentMemoryResponse(AgentMemoryRequest):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class SkillPermissionRequest(BaseModel):
+    skill_id: str
+    can_read_schema: bool = True
+    can_generate_sql: bool = True
+    can_execute: bool = False
+    requires_approval: bool = True
+    environment: str = "development"
+
+
+class SkillPermissionResponse(SkillPermissionRequest):
+    id: int
+    updated_at: datetime
+
+
+class ApprovalRequestCreate(BaseModel):
+    title: str
+    risk_level: str = "medium"
+    requested_by: Optional[str] = None
+    details: Dict[str, Any] = {}
+
+
+class ApprovalRequestResponse(ApprovalRequestCreate):
+    id: int
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class SchemaDecisionRequest(BaseModel):
+    project_id: Optional[str] = None
+    title: str
+    decision: str
+    rationale: Optional[str] = None
+    status: str = "accepted"
+
+
+class SchemaDecisionResponse(SchemaDecisionRequest):
+    id: int
+    created_at: datetime
+
+
+class EnvironmentGuardRequest(BaseModel):
+    environment: str
+    require_backup: bool = False
+    require_sandbox: bool = False
+    require_approval: bool = False
+    allow_direct_write: bool = True
+
+
+class EnvironmentGuardResponse(EnvironmentGuardRequest):
+    id: int
+    updated_at: datetime
+
+
+class AgentToolsState(BaseModel):
+    memories: List[AgentMemoryResponse]
+    skill_permissions: List[SkillPermissionResponse]
+    approvals: List[ApprovalRequestResponse]
+    decisions: List[SchemaDecisionResponse]
+    environment_guards: List[EnvironmentGuardResponse]

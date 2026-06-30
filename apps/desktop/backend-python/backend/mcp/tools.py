@@ -15,6 +15,15 @@ MCP_TOOLS = [
         "inputSchema": {"type": "object", "properties": {"conexion_id": {"type": "integer"}}, "required": ["conexion_id"]},
     },
     {
+        "name": "fluxy_execute_sql",
+        "description": "Execute a guarded SQL statement against a saved local database connection.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"conexion_id": {"type": "integer"}, "sql": {"type": "string"}},
+            "required": ["conexion_id", "sql"],
+        },
+    },
+    {
         "name": "fluxy_list_skills",
         "description": "List installed Fluxy skills.",
         "inputSchema": {"type": "object", "properties": {}},
@@ -46,11 +55,13 @@ def text_result(text: str):
     return {"content": [{"type": "text", "text": text}]}
 
 
-def call_tool(name: str, arguments: dict, list_connections, get_profile):
+def call_tool(name: str, arguments: dict, list_connections, get_profile, execute_sql):
     if name == "fluxy_list_connections":
         return {"content": [{"type": "json", "json": list_connections()}]}
     if name == "fluxy_get_database_profile":
         return {"content": [{"type": "json", "json": get_profile(arguments["conexion_id"])}]}
+    if name == "fluxy_execute_sql":
+        return {"content": [{"type": "json", "json": execute_sql(arguments["conexion_id"], arguments["sql"])}]}
     if name == "fluxy_list_skills":
         return {"content": [{"type": "json", "json": [skill.model_dump() for skill in list_skills()]}]}
     if name == "fluxy_run_skill":

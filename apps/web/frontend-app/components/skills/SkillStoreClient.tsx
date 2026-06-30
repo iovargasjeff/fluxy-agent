@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Download, Eye, Power, ShieldCheck, Store, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { installSkillAction, setSkillEnabledAction, type SkillStoreItem } from '@/lib/backend/actions/skills/list'
 
 interface SkillStoreClientProps {
@@ -54,7 +53,54 @@ export function SkillStoreClient({ skills }: SkillStoreClientProps) {
         </div>
       </div>
 
-      <main className="mx-auto grid max-w-6xl gap-4 px-4 py-8 sm:px-6 md:grid-cols-2 xl:grid-cols-3">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {selectedSkill && (
+          <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">{selectedSkill.name}</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">{selectedSkill.description}</p>
+              </div>
+              <Badge variant="outline">{selectedSkill.riskLevel}</Badge>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="rounded-lg border border-slate-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">Que permite</h3>
+                <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                  <li>Ejecutarse como skill instalable compatible con Agent Skills v1.</li>
+                  <li>Resolver compatibilidad por motor de base de datos.</li>
+                  <li>Producir artefactos seguros como reportes, diagramas o planes.</li>
+                  <li>Activarse o desactivarse antes de que el agente la use.</li>
+                </ul>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">Guardas y alcance</h3>
+                <div className="mt-3 space-y-2 text-sm text-slate-600">
+                  <p>Riesgo: <span className="font-medium text-slate-900">{selectedSkill.riskLevel}</span></p>
+                  <p>Motores: {(selectedSkill.engines.length ? selectedSkill.engines : ['multi-engine']).join(', ')}</p>
+                  <p>Requiere aprobacion: {selectedSkill.requiresApproval ? 'Si' : 'No'}</p>
+                  <p>Requiere backup: {selectedSkill.requiresBackup ? 'Si' : 'No'}</p>
+                  <p>Requiere sandbox: {selectedSkill.requiresSandbox ? 'Si' : 'No'}</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">Metadata</h3>
+                <div className="mt-3 space-y-2 text-sm text-slate-600">
+                  <p>ID: <span className="font-mono text-xs text-slate-900">{selectedSkill.id}</span></p>
+                  <p>Version: {selectedSkill.version}</p>
+                  <p>Autor: {selectedSkill.author}</p>
+                  <p>Licencia: {selectedSkill.license}</p>
+                  <p>Estado: {selectedSkill.installed ? (selectedSkill.enabled ? 'Activa' : 'Instalada') : 'Disponible'}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {skills.map((skill) => (
           <article key={skill.id} className="flex min-h-[270px] flex-col rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
@@ -113,62 +159,8 @@ export function SkillStoreClient({ skills }: SkillStoreClientProps) {
             </div>
           </article>
         ))}
+        </section>
       </main>
-
-      <Dialog open={Boolean(selectedSkill)} onOpenChange={(open) => !open && setSelectedSkill(null)}>
-        <DialogContent className="max-w-2xl bg-white text-slate-950">
-          {selectedSkill && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">{selectedSkill.name}</DialogTitle>
-                <DialogDescription>{selectedSkill.description}</DialogDescription>
-              </DialogHeader>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <h3 className="text-sm font-semibold text-slate-900">Que permite</h3>
-                  <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                    <li>Ejecutarse como skill instalable compatible con Agent Skills v1.</li>
-                    <li>Resolver compatibilidad por motor de base de datos.</li>
-                    <li>Producir artefactos seguros como reportes, diagramas o planes.</li>
-                    <li>Activarse o desactivarse por usuario antes de que el agente la use.</li>
-                  </ul>
-                </div>
-
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <h3 className="text-sm font-semibold text-slate-900">Guardas y alcance</h3>
-                  <div className="mt-3 space-y-2 text-sm text-slate-600">
-                    <p>Riesgo: <span className="font-medium text-slate-900">{selectedSkill.riskLevel}</span></p>
-                    <p>Motores: {(selectedSkill.engines.length ? selectedSkill.engines : ['multi-engine']).join(', ')}</p>
-                    <p>Requiere aprobacion: {selectedSkill.requiresApproval ? 'Si' : 'No'}</p>
-                    <p>Requiere backup: {selectedSkill.requiresBackup ? 'Si' : 'No'}</p>
-                    <p>Requiere sandbox: {selectedSkill.requiresSandbox ? 'Si' : 'No'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-slate-200 p-4">
-                <h3 className="text-sm font-semibold text-slate-900">Metadata</h3>
-                <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                  <p>ID: <span className="font-mono text-xs text-slate-900">{selectedSkill.id}</span></p>
-                  <p>Version: {selectedSkill.version}</p>
-                  <p>Autor: {selectedSkill.author}</p>
-                  <p>Licencia: {selectedSkill.license}</p>
-                  <p>Categoria: {selectedSkill.category}</p>
-                  <p>Estado: {selectedSkill.installed ? (selectedSkill.enabled ? 'Activa' : 'Instalada') : 'Disponible'}</p>
-                </div>
-                {selectedSkill.tags.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {selectedSkill.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="rounded-md">{tag}</Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

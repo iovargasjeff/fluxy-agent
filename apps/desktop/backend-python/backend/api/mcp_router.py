@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from backend.api.connector_router import connection_profile_from_model
+from backend.connectors.connector_factory import get_connector
+from backend.core.encryption import decrypt_password
 from backend.mcp.tools import MCP_TOOLS, call_tool, mcp_error
 from backend.models.models import Conexion
-from backend.models.schemas import DatabaseProfile, McpRpcRequest, McpRpcResponse
+from backend.models.schemas import ConexionRequest, DatabaseProfile, McpRpcRequest, McpRpcResponse
 from backend.core.database import get_db
 
 router = APIRouter(prefix="/mcp", tags=["MCP"])
@@ -17,6 +19,26 @@ def mcp_health():
         "protocol": "json-rpc",
         "tools": [tool["name"] for tool in MCP_TOOLS],
     }
+
+
+def _validate_guarded_sql(sql_text: str) -> str:
+    sql = sql_text.strip()
+    lowered = sql.lower()
+
+    if not sql:
+        raise ValueError("SQL statement is required.")
+    if lowered.count(";") > 1 or (";" in lowered and not lowered.endswith(";")):
+        raise ValueError("Only one SQL statement is allowed per MCP call.")
+
+    blocked = ["drop ", "truncate ", "delete ", "update ", "alter ", "grant ", "revoke ", "copy ", "\\", " do "]
+    if any(token in f" {lowered} " for token in blocked):
+        raise ValueError("This SQL operation needs human approval and is blocked by the local MCP guard.")
+
+    allowed_prefixes = ("create ", "insert ", "comment ")
+    if not lowered.startswith(allowed_prefixes):
+        raise ValueError("Only CREATE, INSERT and COMMENT statements are allowed by this guarded MCP tool.")
+
+    return sql
 
 
 @router.post("/rpc", response_model=McpRpcResponse)
@@ -39,7 +61,12 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
         arguments = req.params.get("arguments", {})
 
         def list_connections():
-            return [connection_profile_from_model(c).model_dump() for c in db.query(Conexion).all()]
+            profiles = []
+            for connection in db.query(Conexion).all():
+                profile = connection_profile_from_model(connection).model_dump()
+                profile["local_id"] = connection.id
+                profiles.append(profile)
+            return profiles
 
         def get_profile(conexion_id: int):
             conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
@@ -59,8 +86,41 @@ def mcp_rpc(req: McpRpcRequest, db: Session = Depends(get_db)):
                 capabilities=["inspect_schema", "generate_diagram", "synthetic_seed_preview"],
             ).model_dump()
 
+        def execute_sql(conexion_id: int, sql_text: str):
+            conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+            if not conexion:
+                raise ValueError("Connection not found.")
+            if not conexion.password_db:
+                raise ValueError("Connection has no stored credentials.")
+
+            guarded_sql = _validate_guarded_sql(sql_text)
+            req = ConexionRequest(
+                host=conexion.host,
+                puerto=conexion.puerto,
+                usuario=conexion.usuario_db or "",
+                password=decrypt_password(conexion.password_db),
+                nombre_bd=conexion.nombre_bd,
+                motor=conexion.motor_bd,
+            )
+
+            with get_connector(req) as connector:
+                cursor = connector._connection.cursor()
+                try:
+                    cursor.execute(guarded_sql)
+                    rowcount = cursor.rowcount
+                    connector._connection.commit()
+                finally:
+                    cursor.close()
+
+            return {
+                "ok": True,
+                "conexion_id": conexion_id,
+                "statement": guarded_sql.split(None, 1)[0].upper(),
+                "rowcount": rowcount,
+            }
+
         try:
-            return McpRpcResponse(id=req.id, result=call_tool(tool_name, arguments, list_connections, get_profile))
+            return McpRpcResponse(id=req.id, result=call_tool(tool_name, arguments, list_connections, get_profile, execute_sql))
         except Exception as error:
             return mcp_error(req.id, -32000, str(error))
 

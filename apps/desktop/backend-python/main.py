@@ -6,6 +6,7 @@ from sqlalchemy import inspect, text
 
 # Import routers from the modules
 from backend.api.audit_router import router as audit_router
+from backend.api.agent_tools_router import router as agent_tools_router
 from backend.api.connector_router import router as connector_router
 from backend.api.generator_router import router as generator_router
 from backend.api.mcp_router import router as mcp_router
@@ -90,6 +91,7 @@ app.include_router(skills_router, prefix="/api/v1")
 # Mount Andre's routers
 app.include_router(analyzer_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
+app.include_router(agent_tools_router, prefix="/api/v1")
 app.include_router(sync_router, prefix="/api/v1")
 
 # Mount ER Diagrams routers

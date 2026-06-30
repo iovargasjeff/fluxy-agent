@@ -10,7 +10,20 @@ SENSITIVE_KEYS = {
     "data",
 }
 
-ALLOWED_ARTIFACT_TYPES = {"project", "diagram", "diagram_version", "comment", "public_link", "skill_preferences"}
+ALLOWED_ARTIFACT_TYPES = {
+    "project",
+    "diagram",
+    "diagram_version",
+    "comment",
+    "public_link",
+    "skill_preferences",
+    "agent_memory",
+    "skill_permission",
+    "approval_request",
+    "agent_run",
+    "schema_decision",
+    "environment_guard",
+}
 
 
 def validate_safe_sync_payload(artifact_type: str, payload: dict):

@@ -43,6 +43,8 @@ yarn-error.log*
 *.db
 *.sqlite
 *.sqlite3
+local_config/
+**/local_config/
 
 # OS/editor
 .DS_Store

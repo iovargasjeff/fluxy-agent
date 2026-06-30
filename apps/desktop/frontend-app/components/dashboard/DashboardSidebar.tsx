@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Clock, Users, Trash2, Database, Activity, LayoutDashboard, LogOut, Store, Plug, Network, Bot } from 'lucide-react';
+import { Home, Clock, Users, Trash2, Database, Activity, LayoutDashboard, LogOut, Store, Plug, Network, Bot, RefreshCw, Cloud } from 'lucide-react';
 import { getInitials, getAvatarColor } from '@/lib/utils/avatar';
 import { useConnectionStore } from '@/lib/store/useConnectionStore';
 
@@ -21,7 +21,8 @@ const MAIN_TOOLS = [
   { icon: Activity, label: 'Analizador de Consultas', href: '/analyzer' },
   { icon: Store, label: 'Skill Store', href: '/skills' },
   { icon: Bot, label: 'Herramientas Agenticas', href: '/agent-tools' },
-  { icon: Network, label: 'MCP Local', href: '/mcp' }
+  { icon: Network, label: 'MCP Local', href: '/mcp' },
+  { icon: Cloud, label: 'Cuenta y Sync', href: '/account' }
 ];
 
 interface DashboardSidebarProps {
@@ -35,6 +36,10 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSection, onSectionChange }: DashboardSidebarProps) {
   const pathname = usePathname();
   const { activeConnection, clearConnection } = useConnectionStore();
+
+  function openAccountSync() {
+    window.location.href = '/account';
+  }
 
   return (
     <aside className="hidden lg:flex flex-col w-[240px] flex-shrink-0 h-screen sticky top-0"
@@ -146,6 +151,14 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
               </button>
             </div>
           )}
+          <button
+            type="button"
+            onClick={openAccountSync}
+            className="flex items-center gap-2 text-xs w-full px-3 py-2 rounded-lg transition-colors text-gray-400 hover:text-white hover:bg-gray-800"
+          >
+            <RefreshCw size={14} />
+            Cuenta y Sync
+          </button>
         </div>
       </div>
     </aside>

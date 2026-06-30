@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { Download, Power, ShieldCheck, Store, Wrench } from 'lucide-react'
+import { Download, Eye, Power, ShieldCheck, Store, Wrench } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
@@ -17,6 +17,7 @@ export default function DesktopSkillsPage() {
   const [skills, setSkills] = useState<SkillStoreItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedSkill, setSelectedSkill] = useState<SkillStoreItem | null>(null)
   const [pending, startTransition] = useTransition()
 
   async function loadSkills() {
@@ -78,6 +79,44 @@ export default function DesktopSkillsPage() {
               {error}
             </div>
           )}
+          {selectedSkill && (
+            <section className="mb-6 rounded-lg border border-[#1E2A45] bg-[#111827] p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">{selectedSkill.name}</h2>
+                  <p className="mt-1 text-sm text-[#94A3B8]">{selectedSkill.description}</p>
+                </div>
+                <Badge variant="outline" className="border-[#1E2A45] text-[#94A3B8]">{selectedSkill.risk_level}</Badge>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-3">
+                <div className="rounded-lg border border-[#1E2A45] p-4">
+                  <h3 className="text-sm font-semibold">Que permite</h3>
+                  <ul className="mt-3 space-y-2 text-sm text-[#CBD5E1]">
+                    <li>Resolver compatibilidad por motor local.</li>
+                    <li>Ejecutarse solo si esta instalada y activa.</li>
+                    <li>Producir artefactos seguros y auditables.</li>
+                    <li>Respetar permisos, approvals y environment guard.</li>
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-[#1E2A45] p-4">
+                  <h3 className="text-sm font-semibold">Guardas</h3>
+                  <div className="mt-3 space-y-2 text-sm text-[#CBD5E1]">
+                    <p>Aprobacion: {selectedSkill.requires_approval ? 'Si' : 'No'}</p>
+                    <p>Backup: {selectedSkill.requires_backup ? 'Si' : 'No'}</p>
+                    <p>Sandbox: {selectedSkill.requires_sandbox ? 'Si' : 'No'}</p>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[#1E2A45] p-4">
+                  <h3 className="text-sm font-semibold">Metadata</h3>
+                  <div className="mt-3 space-y-2 text-sm text-[#CBD5E1]">
+                    <p>ID: <span className="font-mono text-xs">{selectedSkill.id}</span></p>
+                    <p>Version: {selectedSkill.version}</p>
+                    <p>Motores: {(selectedSkill.engines.length ? selectedSkill.engines : ['multi-engine']).join(', ')}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {skills.map((skill) => (
               <article key={skill.id} className="flex min-h-[260px] flex-col rounded-lg border border-[#1E2A45] bg-[#111827] p-5 shadow-sm">
@@ -111,6 +150,11 @@ export default function DesktopSkillsPage() {
                     <Wrench className="h-4 w-4" />
                     {skill.installed ? (skill.enabled ? 'Activa' : 'Instalada') : 'Disponible'}
                   </div>
+                  <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setSelectedSkill(skill)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Detalles
+                  </Button>
                   {skill.installed ? (
                     <Button
                       type="button"
@@ -128,6 +172,7 @@ export default function DesktopSkillsPage() {
                       Instalar
                     </Button>
                   )}
+                  </div>
                 </div>
               </article>
             ))}
