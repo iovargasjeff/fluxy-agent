@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.analyzers.schema_analyzer import analyze_schema
 from backend.connectors.connector_factory import get_connector
 from backend.core.database import get_db
-from backend.core.encryption import encrypt_password
+from backend.core.encryption import decrypt_password, encrypt_password
 from backend.generators.data_generator import DataGenerator
 from backend.models.models import Conexion
 from backend.models.schemas import (
@@ -202,9 +202,44 @@ def get_database_profile(conexion_id: int, db: Session = Depends(get_db)):
     )
 
 
+def find_connection_by_public_id(db: Session, conexion_id: str):
+    if conexion_id.isdigit():
+        return db.query(Conexion).filter(Conexion.id == int(conexion_id)).first()
+
+    for conexion in db.query(Conexion).all():
+        if connection_profile_from_model(conexion).connection_id == conexion_id:
+            return conexion
+    return None
+
+
+def connection_request_from_model(conexion: Conexion) -> ConexionRequest:
+    return ConexionRequest(
+        host=conexion.host,
+        puerto=conexion.puerto,
+        usuario=conexion.usuario_db or "",
+        password=decrypt_password(conexion.password_db) if conexion.password_db else "",
+        nombre_bd=conexion.nombre_bd,
+        motor=conexion.motor_bd,
+    )
+
+
+@router.get("/saved/{conexion_id}/schema", response_model=DatabaseSchema)
+def get_saved_connection_schema(conexion_id: str, db: Session = Depends(get_db)):
+    conexion = find_connection_by_public_id(db, conexion_id)
+
+    if not conexion:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada.")
+
+    try:
+        with get_connector(connection_request_from_model(conexion)) as connector:
+            return analyze_schema(connector)
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo esquema: {error}")
+
+
 @router.delete("/saved/{conexion_id}")
-def delete_saved_connection(conexion_id: int, db: Session = Depends(get_db)):
-    conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+def delete_saved_connection(conexion_id: str, db: Session = Depends(get_db)):
+    conexion = find_connection_by_public_id(db, conexion_id)
 
     if not conexion:
         raise HTTPException(status_code=404, detail="Conexion no encontrada.")

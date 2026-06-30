@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends
+import os
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from backend.api.connector_router import connection_profile_from_model
@@ -18,6 +21,51 @@ def mcp_health():
         "status": "ok",
         "protocol": "json-rpc",
         "tools": [tool["name"] for tool in MCP_TOOLS],
+    }
+
+
+def resolve_stdio_bridge_path() -> str:
+    configured = os.environ.get("FLUXY_MCP_BRIDGE_PATH")
+    if configured:
+        return configured
+
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        candidate = parent / "scripts" / "fluxy-mcp-stdio.mjs"
+        if candidate.exists():
+            return str(candidate)
+
+    return "fluxy-mcp-stdio"
+
+
+@router.get("/config")
+def mcp_config(request: Request):
+    endpoint = str(request.url_for("mcp_rpc"))
+    bridge_path = resolve_stdio_bridge_path()
+    command = "node" if bridge_path.endswith(".mjs") else bridge_path
+    args = [bridge_path] if bridge_path.endswith(".mjs") else []
+    return {
+        "endpoint": endpoint,
+        "bridge_path": bridge_path,
+        "codex": {
+            "mcpServers": {
+                "fluxy": {
+                    "command": command,
+                    "args": args,
+                    "env": {"FLUXY_MCP_URL": endpoint},
+                }
+            }
+        },
+        "antigravity": {
+            "servers": {
+                "fluxy": {
+                    "type": "stdio",
+                    "command": command,
+                    "args": args,
+                    "env": {"FLUXY_MCP_URL": endpoint},
+                }
+            }
+        },
     }
 
 

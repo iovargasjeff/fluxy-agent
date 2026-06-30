@@ -17,10 +17,17 @@ from diagrams.schemas import (
 from backend.models.schemas import ConexionRequest
 from backend.connectors.connector_factory import get_connector
 from backend.analyzers.schema_analyzer import analyze_schema
+from backend.api.connector_router import connection_request_from_model, find_connection_by_public_id
 from pydantic import BaseModel
 
 class GenerateDiagramRequest(BaseModel):
     connection: ConexionRequest
+    selected_tables: List[str]
+    name: str
+
+
+class GenerateSavedDiagramRequest(BaseModel):
+    connection_id: str
     selected_tables: List[str]
     name: str
 
@@ -392,6 +399,22 @@ def generate_diagram_from_db(req: GenerateDiagramRequest, projectId: int = Query
         if isinstance(e, HTTPException):
             raise
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/diagrams/generate-saved", response_model=DiagramResponse)
+def generate_diagram_from_saved_connection(req: GenerateSavedDiagramRequest, projectId: int = Query(...), db: Session = Depends(get_db)):
+    conexion = find_connection_by_public_id(db, req.connection_id)
+    if not conexion:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada.")
+    return generate_diagram_from_db(
+        GenerateDiagramRequest(
+            connection=connection_request_from_model(conexion),
+            selected_tables=req.selected_tables,
+            name=req.name,
+        ),
+        projectId=projectId,
+        db=db,
+    )
 
 
 @router.post("/diagrams/{diagram_id}/refresh", response_model=DiagramResponse)

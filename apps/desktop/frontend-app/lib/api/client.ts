@@ -235,6 +235,11 @@ export const diagramsAPI = {
         connection: mapConnectionForGenerator(payload.connection),
       }),
     }),
+  generateSaved: (projectId: string, payload: { connection_id: string; selected_tables: string[]; name: string }) =>
+    apiCall<DiagramResponse>(`/diagrams/generate-saved?projectId=${projectId}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   saveDiagramByProject: async (
     projectId: string,
     flowJson: FlowJson,
@@ -455,6 +460,8 @@ export interface SavedConnection {
 
 export const connectorAPI = {
   listSaved: () => apiCall<SavedConnection[]>('/connect/saved'),
+  savedSchema: (id: string) =>
+    apiCall<{ tables: Array<string | { name: string }> }>(`/connect/saved/${encodeURIComponent(id)}/schema`),
   deleteSaved: (id: string) => apiCall<{ message: string }>(`/connect/saved/${id}`, { method: 'DELETE' }),
 };
 
@@ -492,6 +499,44 @@ export const skillsAPI = {
 
 export const mcpAPI = {
   health: () => apiCall<{ status: string; protocol: string; tools: string[] }>('/mcp/health'),
+  config: () => apiCall<{ endpoint: string; bridge_path: string; codex: JsonObject; antigravity: JsonObject }>('/mcp/config'),
+};
+
+export interface DeviceLinkStart {
+  device_code: string;
+  user_code: string;
+  status: string;
+  verification_url: string;
+  expires_in: number;
+  poll_interval: number;
+}
+
+export interface DeviceLinkStatus {
+  device_code: string;
+  user_code: string;
+  status: 'pending' | 'linked';
+  user_email?: string | null;
+  expires_at: string;
+}
+
+export interface CloudAccountStatus {
+  linked: boolean;
+  user_email?: string | null;
+  provider?: string | null;
+  status: string;
+  linked_at?: string | null;
+  updated_at?: string | null;
+}
+
+export const syncAPI = {
+  account: () => apiCall<CloudAccountStatus>('/sync/account'),
+  startDeviceLink: () => apiCall<DeviceLinkStart>('/sync/device/start', { method: 'POST' }),
+  deviceStatus: (deviceCode: string) => apiCall<DeviceLinkStatus>(`/sync/device/status/${deviceCode}`),
+  pullCloud: () =>
+    apiCall<{ ok: boolean; projects_imported: number; diagrams_imported: number; projects_seen: number }>(
+      '/sync/cloud/pull',
+      { method: 'POST' },
+    ),
 };
 
 export interface AgentMemoryItem {

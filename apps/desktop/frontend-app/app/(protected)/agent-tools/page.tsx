@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { agentToolsAPI, type AgentToolsState, type EnvironmentGuardItem } from '@/lib/api/client'
+import { agentToolsAPI, connectorAPI, type AgentToolsState, type EnvironmentGuardItem, type SavedConnection } from '@/lib/api/client'
 
 const emptyState: AgentToolsState = {
   memories: [],
@@ -31,6 +31,7 @@ type ToolId = typeof tools[number]['id']
 
 export default function AgentToolsPage() {
   const [state, setState] = useState<AgentToolsState>(emptyState)
+  const [connections, setConnections] = useState<SavedConnection[]>([])
   const [activeTool, setActiveTool] = useState<ToolId>('memory')
   const [memory, setMemory] = useState({ scope: 'workspace', subject: '', content: '', tags: '' })
   const [permission, setPermission] = useState({ skill_id: 'safe_migration_basic', environment: 'production', can_read_schema: true, can_generate_sql: true, can_execute: false, requires_approval: true })
@@ -42,7 +43,9 @@ export default function AgentToolsPage() {
   async function load() {
     try {
       setError(null)
-      setState(await agentToolsAPI.state())
+      const [toolsState, savedConnections] = await Promise.all([agentToolsAPI.state(), connectorAPI.listSaved()])
+      setState(toolsState)
+      setConnections(savedConnections)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudieron cargar las herramientas agenticas.')
     }
@@ -53,7 +56,50 @@ export default function AgentToolsPage() {
     return () => window.clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search)
+      const tool = params.get('tool')
+      const scope = params.get('scope')
+      const subject = params.get('subject')
+
+      if (tool && tools.some((item) => item.id === tool)) {
+        setActiveTool(tool as ToolId)
+      }
+      if (scope || subject) {
+        setMemory((current) => ({
+          ...current,
+          scope: scope || current.scope,
+          subject: subject || current.subject,
+          tags: current.tags || 'database, schema-context',
+        }))
+      }
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   const activeMeta = useMemo(() => tools.find((tool) => tool.id === activeTool) ?? tools[0], [activeTool])
+  const selectedConnection = useMemo(
+    () => connections.find((connection) => connection.connection_id === memory.subject) ?? null,
+    [connections, memory.subject],
+  )
+  const selectedMemory = useMemo(
+    () => state.memories.find((item) => item.scope === memory.scope && item.subject === memory.subject),
+    [memory.scope, memory.subject, state.memories],
+  )
+
+  useEffect(() => {
+    if (selectedMemory) {
+      const timer = window.setTimeout(() => {
+        setMemory((current) => ({
+          ...current,
+          content: selectedMemory.content,
+          tags: selectedMemory.tags.join(', '),
+        }))
+      }, 0)
+      return () => window.clearTimeout(timer)
+    }
+  }, [selectedMemory])
 
   const submitMemory = () => startTransition(async () => {
     try {
@@ -165,12 +211,44 @@ export default function AgentToolsPage() {
             {activeTool === 'memory' && (
               <div className="grid gap-6 lg:grid-cols-[minmax(360px,480px)_1fr]">
                 <div className="grid gap-3">
-                  <Input value={memory.subject} onChange={(e) => setMemory({ ...memory, subject: e.target.value })} placeholder="Tema: particionado de orders" />
-                  <Textarea value={memory.content} onChange={(e) => setMemory({ ...memory, content: e.target.value })} placeholder="Que debe recordar Fluxy..." className="min-h-40" />
+                  <select className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]" value={memory.scope} onChange={(e) => setMemory({ ...memory, scope: e.target.value })}>
+                    <option value="workspace">workspace</option>
+                    <option value="database">database</option>
+                    <option value="project">project</option>
+                    <option value="team">team</option>
+                  </select>
+                  {memory.scope === 'database' && connections.length > 0 ? (
+                    <select
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-[#1E2A45] dark:bg-[#0B1322]"
+                      value={memory.subject}
+                      onChange={(e) => setMemory({ ...memory, subject: e.target.value, content: '', tags: 'database, schema-context' })}
+                    >
+                      <option value="">Selecciona una conexion</option>
+                      {connections.map((connection) => (
+                        <option key={connection.connection_id} value={connection.connection_id}>
+                          {connection.alias || connection.database} / {connection.engine} / {connection.host_masked}:{connection.port}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input value={memory.subject} onChange={(e) => setMemory({ ...memory, subject: e.target.value })} placeholder="Tema: particionado de orders" />
+                  )}
+                  {selectedConnection && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+                      <p className="font-medium">{selectedConnection.database}</p>
+                      <p className="mt-1">{selectedConnection.engine} en {selectedConnection.host_masked}:{selectedConnection.port}</p>
+                    </div>
+                  )}
+                  <Textarea value={memory.content} onChange={(e) => setMemory({ ...memory, content: e.target.value })} placeholder="Que debe recordar Fluxy: problema que resuelve esta base, etapa MVP/produccion, razon de cada tabla, reglas de negocio, riesgos y decisiones pendientes..." className="min-h-40" />
                   <Input value={memory.tags} onChange={(e) => setMemory({ ...memory, tags: e.target.value })} placeholder="tags separados por coma" />
-                  <Button disabled={pending || !memory.subject || !memory.content} onClick={submitMemory}>Guardar memoria</Button>
+                  <Button disabled={pending || !memory.subject || !memory.content} onClick={submitMemory}>{selectedMemory ? 'Actualizar memoria' : 'Guardar memoria'}</Button>
                 </div>
-                <RecordList items={state.memories.map((item) => ({ title: item.subject, detail: item.content }))} empty="Sin recuerdos todavia." />
+                <RecordList
+                  items={state.memories
+                    .filter((item) => memory.scope !== 'database' || item.scope === 'database')
+                    .map((item) => ({ title: `${item.scope}: ${item.subject}`, detail: item.content }))}
+                  empty="Sin recuerdos todavia."
+                />
               </div>
             )}
 

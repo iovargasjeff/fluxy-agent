@@ -10,17 +10,20 @@ import { analyzerAPI } from '@/lib/api/client';
 import { useConnectionStore } from '@/lib/store/useConnectionStore';
 import { toast } from 'sonner';
 
+type AnalyzerResult = Record<string, unknown>
+type AIConfig = { providerId: string } | null
+
 export default function AnalyzerPage() {
   const { activeConnection } = useConnectionStore();
   
   const [query, setQuery] = useState<string>("SELECT * FROM users\nWHERE created_at > '2024-01-01';");
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState<any>(null);
+  const [analysisResults, setAnalysisResults] = useState<AnalyzerResult | null>(null);
   
   const [isAnalyzingAI, setIsAnalyzingAI] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
-  const [aiConfig, setAiConfig] = useState<any>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AnalyzerResult | null>(null);
+  const [aiConfig, setAiConfig] = useState<AIConfig>(null);
 
   const handleAnalyze = async () => {
     if (!activeConnection) {
@@ -35,7 +38,7 @@ export default function AnalyzerPage() {
       });
       setAnalysisResults(result);
       setAiAnalysis(null); // Reset AI analysis for new query
-    } catch (error) {
+    } catch {
       console.warn("Backend falló. Usando MOCK DATA para resultados.");
       setTimeout(() => {
         setAnalysisResults({
@@ -82,17 +85,17 @@ export default function AnalyzerPage() {
   };
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#0A0F1E' }}>
+    <div className="flex min-h-screen bg-slate-50 text-slate-950 dark:bg-[#0A0F1E] dark:text-white">
       <DashboardSidebar
         userName="Usuario Local"
         activeSection=""
         onSectionChange={() => {}}
       />
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="border-b border-[#1E2A45] bg-[#111827] sticky top-0 z-10 shadow-sm flex-shrink-0">
+        <header className="sticky top-0 z-10 flex-shrink-0 border-b border-slate-200 bg-white shadow-sm dark:border-[#1E2A45] dark:bg-[#111827]">
           <div className="container mx-auto px-6 h-16 flex items-center">
             <Activity className="w-5 h-5 text-blue-500 mr-3" />
-            <span className="text-base font-semibold text-white">Analizador de Consultas</span>
+            <span className="text-base font-semibold">Analizador de Consultas</span>
           </div>
         </header>
         

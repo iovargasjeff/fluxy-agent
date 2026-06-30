@@ -111,8 +111,15 @@ def get_agent_tools_state(db: Session = Depends(get_db)):
 
 @router.post("/memories", response_model=AgentMemoryResponse)
 def create_memory(req: AgentMemoryRequest, db: Session = Depends(get_db)):
-    item = AgentMemory(scope=req.scope, subject=req.subject, content=req.content, tags_json=json.dumps(req.tags))
-    db.add(item)
+    item = db.query(AgentMemory).filter(
+        AgentMemory.scope == req.scope,
+        AgentMemory.subject == req.subject,
+    ).first()
+    if not item:
+        item = AgentMemory(scope=req.scope, subject=req.subject)
+        db.add(item)
+    item.content = req.content
+    item.tags_json = json.dumps(req.tags)
     db.commit()
     db.refresh(item)
     return memory_response(item)

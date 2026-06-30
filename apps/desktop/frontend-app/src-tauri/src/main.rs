@@ -13,6 +13,8 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[cfg(not(debug_assertions))]
+use tauri::path::BaseDirectory;
 use tauri::{Manager, RunEvent, State};
 use tauri_plugin_shell::{process::CommandChild, ShellExt};
 
@@ -151,6 +153,21 @@ fn main() {
             migrate_legacy_database(&database_path);
 
             #[cfg(debug_assertions)]
+            let mcp_bridge_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .and_then(Path::parent)
+                .and_then(Path::parent)
+                .and_then(Path::parent)
+                .expect("invalid workspace layout")
+                .join("scripts")
+                .join("fluxy-mcp-stdio.mjs");
+
+            #[cfg(not(debug_assertions))]
+            let mcp_bridge_path = app
+                .path()
+                .resolve("fluxy-mcp-stdio.mjs", BaseDirectory::Resource)?;
+
+            #[cfg(debug_assertions)]
             let command = {
                 let backend_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                     .parent()
@@ -172,7 +189,8 @@ fn main() {
                 .env("DATABASE_PATH", database_path)
                 .env("TEMP_DIR", exports_dir)
                 .env("APP_CONFIG_DIR", data_dir)
-                .env("SECRETS_KEY_PATH", secrets_key_path);
+                .env("SECRETS_KEY_PATH", secrets_key_path)
+                .env("FLUXY_MCP_BRIDGE_PATH", mcp_bridge_path);
 
             let (mut events, child) = command.spawn()?;
             app.state::<SidecarState>()

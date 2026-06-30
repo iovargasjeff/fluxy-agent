@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, CheckCircle2, Database, Link as LinkIcon, Plug, Server, Trash2 } from 'lucide-react';
+import { AlertCircle, Brain, CheckCircle2, Database, Link as LinkIcon, Plug, Server, Trash2 } from 'lucide-react';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { useConnectionStore } from '@/lib/store/useConnectionStore';
 import { connectorAPI, generatorAPI, type SavedConnection } from '@/lib/api/client';
@@ -46,12 +46,15 @@ export default function ConnectPage() {
 
   const handleDeleteSaved = async (id: string) => {
     if (!confirm('Eliminar esta conexion local?')) return;
+    setError(null);
+    setSuccess(null);
     try {
       await connectorAPI.deleteSaved(id);
       await fetchSaved();
+      setSuccess('Conexion local eliminada. Sus credenciales ya no quedan disponibles en este Desktop.');
     } catch (err) {
       console.error('Error deleting connection:', err);
-      setError('Error eliminando la conexion.');
+      setError(err instanceof Error ? err.message : 'Error eliminando la conexion.');
     }
   };
 
@@ -255,16 +258,27 @@ export default function ConnectPage() {
                       <h3 className="line-clamp-2 text-sm font-semibold">{conn.alias || conn.database}</h3>
                       <p className="mt-2 text-xs uppercase tracking-wide text-slate-500 dark:text-[#94A3B8]">{conn.engine}</p>
                       <p className="mt-1 break-all text-xs text-slate-500 dark:text-[#94A3B8]">{conn.host_masked}:{conn.port}</p>
+                      <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-[#94A3B8]">Memoria DB: proposito, etapa, reglas de negocio y decisiones de tablas.</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void handleConnectSaved(conn)}
-                      disabled={isLoading}
-                      className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 text-xs font-medium text-[#1A6CF6] transition hover:border-[#1A6CF6] dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200"
-                    >
-                      <LinkIcon className="h-3.5 w-3.5" />
-                      Usar para diagramas
-                    </button>
+                    <div className="mt-4 grid gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleConnectSaved(conn)}
+                        disabled={isLoading}
+                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 text-xs font-medium text-[#1A6CF6] transition hover:border-[#1A6CF6] dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200"
+                      >
+                        <LinkIcon className="h-3.5 w-3.5" />
+                        Usar para diagramas
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/agent-tools?tool=memory&scope=database&subject=${encodeURIComponent(conn.connection_id)}`)}
+                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 transition hover:border-[#1A6CF6] hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:bg-[#0B1322] dark:text-[#CBD5E1]"
+                      >
+                        <Brain className="h-3.5 w-3.5" />
+                        Memoria DB
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>

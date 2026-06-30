@@ -41,6 +41,18 @@ class SyncQueueItem(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
+class CloudAccountSession(Base):
+    __tablename__ = "cloud_account_session"
+
+    id = Column(Integer, primary_key=True, index=True, default=1)
+    user_email = Column(String(255), nullable=False)
+    access_token = Column(Text, nullable=False)
+    provider = Column(String(50), nullable=False, default="fluxy_web")
+    status = Column(String(50), nullable=False, default="linked")
+    linked_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class LocalSkillInstallation(Base):
     __tablename__ = "local_skill_installations"
 

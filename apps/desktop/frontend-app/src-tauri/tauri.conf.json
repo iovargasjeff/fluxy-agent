@@ -34,6 +34,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "resources": [
+      "../../../../scripts/fluxy-mcp-stdio.mjs"
+    ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
     }

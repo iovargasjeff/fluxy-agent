@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Copy, Network, ShieldCheck, Terminal } from 'lucide-react'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { Badge } from '@/components/ui/badge'
@@ -10,39 +10,21 @@ import { mcpAPI } from '@/lib/api/client'
 export default function McpPage() {
   const [tools, setTools] = useState<string[]>([])
   const [status, setStatus] = useState('cargando')
-  const bridgePath = 'C:\\Todo\\PROGRAMAS\\PRODUCTIVE\\fluxy\\fluxy-agent\\scripts\\fluxy-mcp-stdio.mjs'
-  const endpoint = 'http://127.0.0.1:8000/api/v1/mcp/rpc'
-  const codexConfig = useMemo(() => JSON.stringify({
-    mcpServers: {
-      fluxy: {
-        command: 'node',
-        args: [bridgePath],
-        env: {
-          FLUXY_MCP_URL: endpoint,
-        },
-      },
-    },
-  }, null, 2), [bridgePath, endpoint])
-
-  const antigravityConfig = useMemo(() => JSON.stringify({
-    servers: {
-      fluxy: {
-        type: 'stdio',
-        command: 'node',
-        args: [bridgePath],
-        env: {
-          FLUXY_MCP_URL: endpoint,
-        },
-      },
-    },
-  }, null, 2), [bridgePath, endpoint])
+  const [endpoint, setEndpoint] = useState('cargando')
+  const [bridgePath, setBridgePath] = useState('cargando')
+  const [codexConfig, setCodexConfig] = useState('{}')
+  const [antigravityConfig, setAntigravityConfig] = useState('{}')
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void mcpAPI.health()
-        .then((health) => {
+      void Promise.all([mcpAPI.health(), mcpAPI.config()])
+        .then(([health, config]) => {
           setStatus(health.status)
           setTools(health.tools)
+          setEndpoint(config.endpoint)
+          setBridgePath(config.bridge_path)
+          setCodexConfig(JSON.stringify(config.codex, null, 2))
+          setAntigravityConfig(JSON.stringify(config.antigravity, null, 2))
         })
         .catch(() => setStatus('offline'))
     }, 0)
@@ -103,8 +85,9 @@ export default function McpPage() {
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-[#1E2A45] dark:bg-[#111827] lg:col-span-2">
             <h2 className="font-semibold">Endpoint local</h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-[#CBD5E1]">
-              Mantiene las credenciales en Desktop. Los agentes externos hablan con el bridge stdio y el bridge llama al sidecar local.
+              Esta ruta se genera desde la instalacion actual de Fluxy Desktop, no desde una carpeta fija de desarrollo.
             </p>
+            <code className="mt-3 block rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-[#1E2A45] dark:bg-[#0B1322] dark:text-[#CBD5E1]">{bridgePath}</code>
             <code className="mt-3 block rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-[#1E2A45] dark:bg-[#0B1322] dark:text-[#CBD5E1]">{endpoint}</code>
           </div>
         </section>

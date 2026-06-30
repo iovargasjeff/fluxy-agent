@@ -11,15 +11,38 @@ from backend.models.schemas import DatabaseSchema, TableSchema, ColumnSchema
 class SQLServerConnector(BaseConnector):
 
     def connect(self) -> bool:
+        preferred_drivers = [
+            "ODBC Driver 18 for SQL Server",
+            "ODBC Driver 17 for SQL Server",
+            "SQL Server Native Client 11.0",
+            "SQL Server",
+        ]
+        installed = set(pyodbc.drivers())
+        driver = next((item for item in preferred_drivers if item in installed), None)
+        if not driver:
+            raise RuntimeError(
+                "No hay un driver ODBC de SQL Server instalado. Instala 'ODBC Driver 18 for SQL Server' "
+                "y vuelve a intentar la conexion."
+            )
+
         conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"DRIVER={{{driver}}};"
             f"SERVER={self.host},{self.port};"
             f"DATABASE={self.database};"
             f"UID={self.user};"
             f"PWD={self.password};"
             f"Connection Timeout=10;"
+            "TrustServerCertificate=yes;"
+            "Encrypt=no;"
         )
-        self._connection = pyodbc.connect(conn_str)
+        try:
+            self._connection = pyodbc.connect(conn_str)
+        except pyodbc.Error as error:
+            raise RuntimeError(
+                f"No se pudo conectar a SQL Server usando el driver ODBC '{driver}'. "
+                "Si estas usando SQL Server 2022 en Docker, instala 'ODBC Driver 18 for SQL Server'. "
+                f"Detalle: {error}"
+            ) from error
         return True
 
     def disconnect(self):

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Download, Eye, Power, ShieldCheck, Store, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { installSkillAction, setSkillEnabledAction, type SkillStoreItem } from '@/lib/backend/actions/skills/list'
 
 interface SkillStoreClientProps {
@@ -54,17 +55,18 @@ export function SkillStoreClient({ skills }: SkillStoreClientProps) {
       </div>
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        {selectedSkill && (
-          <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950">{selectedSkill.name}</h2>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{selectedSkill.description}</p>
-              </div>
-              <Badge variant="outline">{selectedSkill.riskLevel}</Badge>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-3">
+        <Dialog open={Boolean(selectedSkill)} onOpenChange={(open) => !open && setSelectedSkill(null)}>
+          <DialogContent className="max-h-[88vh] w-[min(980px,94vw)] max-w-none overflow-auto border-slate-200 bg-white text-slate-950">
+            {selectedSkill && (
+              <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-between gap-3">
+                  <span>{selectedSkill.name}</span>
+                  <Badge variant="outline">{selectedSkill.riskLevel}</Badge>
+                </DialogTitle>
+                <p className="text-sm leading-6 text-slate-600">{selectedSkill.description}</p>
+              </DialogHeader>
+              <div className="grid gap-4 lg:grid-cols-3">
               <div className="rounded-lg border border-slate-200 p-4">
                 <h3 className="text-sm font-semibold text-slate-900">Que permite</h3>
                 <ul className="mt-3 space-y-2 text-sm text-slate-600">
@@ -96,9 +98,11 @@ export function SkillStoreClient({ skills }: SkillStoreClientProps) {
                   <p>Estado: {selectedSkill.installed ? (selectedSkill.enabled ? 'Activa' : 'Instalada') : 'Disponible'}</p>
                 </div>
               </div>
-            </div>
-          </section>
-        )}
+              </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {skills.map((skill) => (

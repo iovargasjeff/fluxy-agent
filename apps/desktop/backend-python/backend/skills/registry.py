@@ -95,6 +95,15 @@ OFFICIAL_SKILLS = [
         tags=["postgresql", "performance"],
     ),
     SkillMetadata(
+        id="query_analyzer",
+        name="Analizador de Consultas",
+        description="Analiza consultas, planes de ejecucion y patrones costosos en SQL y motores NoSQL compatibles.",
+        category="performance",
+        engines=["postgresql", "mysql", "sqlserver", "mongodb", "neo4j"],
+        risk_level="low",
+        tags=["performance", "query-plan", "sql", "nosql"],
+    ),
+    SkillMetadata(
         id="production_guard",
         name="Production Guard",
         description="Block destructive or production-risk actions unless safeguards are present.",
