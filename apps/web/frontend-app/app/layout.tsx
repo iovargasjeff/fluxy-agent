@@ -31,7 +31,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
-          storageKey="dbcanvas-theme"
+          storageKey="fluxy-theme"
         >
           {children}
           <Toaster />

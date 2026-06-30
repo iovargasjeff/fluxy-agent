@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, forwardRef, type ElementType } from 'react'
 import { ReactFlowProvider, useReactFlow, type Edge, type Node } from '@xyflow/react'
-import { ArrowLeft, CheckCircle2, Code2, Database, FileJson, History, PanelRight, RefreshCw } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Code2, Database, DatabaseZap, FileJson, History, PanelRight, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Canvas } from './Canvas'
 import { EditorPanel } from './EditorPanel'
@@ -19,6 +19,7 @@ import { toFlowJson } from '@/lib/flow-types'
 import { diagramsAPI } from '@/lib/api/client'
 import { useConnectionStore } from '@/lib/store/useConnectionStore'
 import { useRouter } from 'next/navigation'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface EditorLayoutProps {
   projectName: string
@@ -239,10 +240,10 @@ function EditorLayoutInner({
 
   return (
     <div
-      className="flex h-full min-h-0 w-full overflow-hidden bg-[#07101F] text-white"
+      className="flex h-full min-h-0 w-full overflow-hidden bg-white text-slate-950 dark:bg-[#07101F] dark:text-white"
     >
-      <aside className="flex w-14 shrink-0 flex-col items-center overflow-hidden border-r border-[#1E2A45] bg-[#0B1322] py-4">
-        <Database className="mb-7 h-5 w-5 shrink-0 text-[#B6C7E3]" />
+      <aside className="flex w-14 shrink-0 flex-col items-center overflow-hidden border-r border-slate-200 bg-white py-4 dark:border-[#1E2A45] dark:bg-[#0B1322]">
+        <Database className="mb-7 h-5 w-5 shrink-0 text-slate-500 dark:text-[#B6C7E3]" />
 
         <NavButton
           icon={Code2}
@@ -264,24 +265,24 @@ function EditorLayoutInner({
       </aside>
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="relative z-[100] flex h-14 shrink-0 items-center gap-3 overflow-visible border-b border-[#1E2A45] bg-[#0B1322]/95 px-4 backdrop-blur">
+        <header className="relative z-[100] flex h-14 shrink-0 items-center gap-3 overflow-visible border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-[#1E2A45] dark:bg-[#0B1322]/95">
           <button
             type="button"
             onClick={() => void handleBack()}
-            className="rounded-lg p-2 text-[#94A3B8] hover:bg-[#111827] hover:text-white"
+            className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-[#1A6CF6] dark:text-[#94A3B8] dark:hover:bg-[#111827] dark:hover:text-white"
           >
             <ArrowLeft size={17} />
           </button>
 
-          <span className="text-sm text-[#94A3B8]">Proyectos</span>
-          <span className="text-[#334155]">/</span>
+          <span className="text-sm text-slate-500 dark:text-[#94A3B8]">Proyectos</span>
+          <span className="text-slate-300 dark:text-[#334155]">/</span>
           <h1 className="max-w-52 truncate text-sm font-semibold">{projectName}</h1>
 
-          <div className="mx-auto hidden shrink-0 rounded-xl border border-[#1E2A45] bg-[#0A0F1E] p-1 md:flex">
+          <div className="mx-auto hidden shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-1 md:flex dark:border-[#1E2A45] dark:bg-[#0A0F1E]">
             {DIALECTS.filter(({ value }) => value === mode).map(({ value, label, icon: Icon }) => (
               <div
                 key={value}
-                className="flex items-center gap-1.5 rounded-lg bg-[#123A79] px-4 py-1.5 text-xs text-[#BFDBFE]"
+                className="flex items-center gap-1.5 rounded-lg bg-[#1A6CF6] px-4 py-1.5 text-xs text-white dark:bg-[#123A79] dark:text-[#BFDBFE]"
               >
                 <Icon size={13} />
                 {label}
@@ -290,7 +291,7 @@ function EditorLayoutInner({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            <div className="hidden items-center gap-2 text-xs text-[#C7D2FE] lg:flex">
+            <div className="hidden items-center gap-2 text-xs text-slate-500 dark:text-[#C7D2FE] lg:flex">
               <CheckCircle2 size={15} className="text-emerald-400" />
               {saving ? 'Guardando...' : savedLabel}
             </div>
@@ -305,13 +306,23 @@ function EditorLayoutInner({
               type="button"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#1E2A45] px-3 py-2 text-xs text-[#BFDBFE] hover:bg-[#111827] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] disabled:opacity-50 dark:border-[#1E2A45] dark:text-[#BFDBFE] dark:hover:bg-[#111827]"
             >
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
               Actualizar desde BD
             </button>
 
+            <button
+              type="button"
+              onClick={() => router.push('/generator')}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] dark:border-[#1E2A45] dark:text-[#BFDBFE] dark:hover:bg-[#111827]"
+            >
+              <DatabaseZap size={14} />
+              Generar datos
+            </button>
+
             <ExportMenu projectName={projectName} />
+            <ThemeToggle />
           </div>
         </header>
 
@@ -320,24 +331,24 @@ function EditorLayoutInner({
             <>
               <div
                 style={{ width: sqlWidth }}
-                className="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden border-r border-[#1E2A45] bg-[#0B1322]"
+                className="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white dark:border-[#1E2A45] dark:bg-[#0B1322]"
               >
                 <div className="min-h-0 flex-1 overflow-hidden">
                   <EditorPanel mode={mode} />
                 </div>
 
-                <div className="shrink-0 border-t border-[#1E2A45] bg-[#0D1424] p-3">
+                <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-3 dark:border-[#1E2A45] dark:bg-[#0D1424]">
                   <div
                     className={`rounded-xl border p-3 text-sm ${stats.warnings
-                        ? 'border-amber-500/30 bg-amber-500/10 text-amber-200'
-                        : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+                        ? 'border-amber-500/30 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200'
+                        : 'border-emerald-500/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
                       }`}
                   >
                     <CheckCircle2 className="mr-2 inline h-4 w-4" />
                     {stats.warnings
                       ? `${stats.warnings} advertencia(s) por revisar.`
                       : 'Todo listo. No se encontraron errores.'}
-                    <span className="ml-2 text-xs text-[#94A3B8]">
+                    <span className="ml-2 text-xs text-slate-500 dark:text-[#94A3B8]">
                       {stats.tables} tablas · {stats.relations} relaciones
                     </span>
                   </div>
@@ -378,7 +389,7 @@ function EditorLayoutInner({
 
               <div
                 style={{ width: inspectorWidth }}
-                className="flex min-h-0 shrink-0 flex-col overflow-hidden border-l border-[#1E2A45] bg-[#0B1322]"
+                className="flex min-h-0 shrink-0 flex-col overflow-hidden border-l border-slate-200 bg-white dark:border-[#1E2A45] dark:bg-[#0B1322]"
               >
                 <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                   <SchemaInspector projectId={projectId} />
@@ -401,9 +412,9 @@ function EditorLayoutInner({
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-[#1E2A45] bg-[#0D1424]/90 px-4 py-2 shadow-xl shadow-black/20 backdrop-blur">
-      <div className="text-lg font-semibold text-white">{value}</div>
-      <div className="text-[11px] text-[#94A3B8]">{label}</div>
+    <div className="rounded-xl border border-slate-200 bg-white/90 px-4 py-2 shadow-xl shadow-slate-300/40 backdrop-blur dark:border-[#1E2A45] dark:bg-[#0D1424]/90 dark:shadow-black/20">
+      <div className="text-lg font-semibold text-slate-950 dark:text-white">{value}</div>
+      <div className="text-[11px] text-slate-500 dark:text-[#94A3B8]">{label}</div>
     </div>
   )
 }
@@ -426,7 +437,7 @@ export const NavButton = forwardRef<
       aria-label={label}
       className={`mb-2 rounded-xl p-3 transition ${active
           ? 'bg-[#1A6CF6] text-white shadow-lg shadow-[#1A6CF6]/30'
-          : 'text-[#64748B] hover:bg-[#111827] hover:text-white'
+          : 'text-slate-500 hover:bg-blue-50 hover:text-[#1A6CF6] dark:text-[#64748B] dark:hover:bg-[#111827] dark:hover:text-white'
         }`}
       {...props}
     >

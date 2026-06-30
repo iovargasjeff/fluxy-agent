@@ -10,8 +10,8 @@ const MonacoEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full animate-pulse items-center justify-center bg-[#101827]">
-        <span className="text-sm text-[#6B7280]">Cargando editor...</span>
+      <div className="flex h-full w-full animate-pulse items-center justify-center bg-white dark:bg-[#101827]">
+        <span className="text-sm text-slate-500 dark:text-[#6B7280]">Cargando editor...</span>
       </div>
     ),
   }
@@ -26,10 +26,10 @@ export function EditorPanel({ mode }: EditorPanelProps) {
   const { resolvedTheme } = useTheme()
 
   return (
-    <div className="flex h-full w-full flex-col bg-[#101827]">
-      <div className="flex shrink-0 items-center border-b border-[#1E2A45] bg-[#111827] px-4 py-2">
-        <span className="font-mono text-xs text-[#9CDCFE]">schema.{mode === 'json' ? 'json' : 'sql'}</span>
-        <span className="ml-auto rounded-md border border-[#1E2A45] px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[#64748B]">
+    <div className="flex h-full w-full flex-col bg-white dark:bg-[#101827]">
+      <div className="flex shrink-0 items-center border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1E2A45] dark:bg-[#111827]">
+        <span className="font-mono text-xs text-slate-600 dark:text-[#9CDCFE]">schema.{mode === 'json' ? 'json' : 'sql'}</span>
+        <span className="ml-auto rounded-md border border-slate-200 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-[#1E2A45] dark:text-[#64748B]">
           {mode}
         </span>
       </div>

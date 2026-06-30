@@ -8,6 +8,7 @@ import { TableNode } from './nodes/TableNode'
 import { RelationshipEdge } from './edges/RelationshipEdge'
 import { GitBranch, Grid3X3, Maximize2, Rows3, Save, GitCommit } from 'lucide-react'
 import { CommitModal } from './CommitModal'
+import { useTheme } from 'next-themes'
 
 // CRITICAL: nodeTypes and edgeTypes MUST be defined outside the component
 const nodeTypes = {
@@ -26,6 +27,7 @@ interface CanvasProps {
 
 export function Canvas({ projectId, emitNodeMove, onSave }: CanvasProps) {
   const { fitView } = useReactFlow()
+  const { resolvedTheme } = useTheme()
   const [showGrid, setShowGrid] = useState(true)
   const { nodes, edges, hoveredNodeId, onNodesChange, onEdgesChange, setNodesAndEdges, setSelectedNodeId, setHoveredNodeId } = useEditorStore()
 
@@ -46,8 +48,14 @@ export function Canvas({ projectId, emitNodeMove, onSave }: CanvasProps) {
     })
   }, [edges, hoveredNodeId])
 
+  const isDark = resolvedTheme === 'dark'
+  const canvasBg = isDark ? '#07101F' : '#F8FAFC'
+  const canvasGridStyle = showGrid
+    ? { backgroundImage: `radial-gradient(${isDark ? '#1E3A5F' : '#CBD5E1'} 1px, transparent 1px)`, backgroundSize: '24px 24px' }
+    : {}
+
   return (
-    <div className={`relative isolate h-full min-h-0 w-full overflow-hidden bg-[#07101F] ${showGrid ? '[background-image:radial-gradient(#1E3A5F_1px,transparent_1px)] [background-size:24px_24px]' : ''}`}>
+    <div className="relative isolate h-full min-h-0 w-full overflow-hidden" style={{ backgroundColor: canvasBg, ...canvasGridStyle }}>
       <ReactFlow
         nodes={nodes}
         edges={visibleEdges}
@@ -64,16 +72,16 @@ export function Canvas({ projectId, emitNodeMove, onSave }: CanvasProps) {
         deleteKeyCode={null}
         proOptions={{ hideAttribution: true }}
       >
-        {showGrid && <Background color="#1E2A45" gap={20} size={1} />}
+        {showGrid && <Background color={isDark ? '#1E2A45' : '#CBD5E1'} gap={20} size={1} />}
         <MiniMap
           pannable
           zoomable
-          className="!bottom-5 !right-5 !h-28 !w-40 overflow-hidden !rounded-xl !border !border-[#1E2A45] !bg-[#0D1424]"
+          className="!bottom-5 !right-5 !h-28 !w-40 overflow-hidden !rounded-xl !border !border-slate-200 !bg-white dark:!border-[#1E2A45] dark:!bg-[#0D1424]"
           nodeColor="#1A6CF6"
-          maskColor="rgba(7,16,31,0.72)"
+          maskColor={isDark ? 'rgba(7,16,31,0.72)' : 'rgba(248,250,252,0.72)'}
         />
       </ReactFlow>
-      <div className="pointer-events-auto absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 overflow-hidden rounded-xl border border-[#1E2A45] bg-[#0D1424]/95 shadow-2xl shadow-black/40 backdrop-blur">
+      <div className="pointer-events-auto absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-2xl shadow-slate-300/40 backdrop-blur dark:border-[#1E2A45] dark:bg-[#0D1424]/95 dark:shadow-black/40">
         <ToolButton icon={Maximize2} label="Ajustar" onClick={() => fitView({ duration: 350, padding: 0.22 })} />
         <ToolButton icon={GitBranch} label="Auto-layout" onClick={() => autoLayout(nodes, setNodesAndEdges, fitView)} active />
         <ToolButton icon={Rows3} label="Alinear" onClick={() => alignRows(nodes, setNodesAndEdges)} />
@@ -92,7 +100,7 @@ import { forwardRef } from 'react'
 const ToolButton = forwardRef<HTMLButtonElement, { icon: React.ElementType; label: string; onClick?: () => void; active?: boolean }>(
   ({ icon: Icon, label, onClick, active = false, ...props }, ref) => {
     return (
-      <button ref={ref} onClick={onClick} {...props} className={`flex min-w-20 flex-col items-center gap-1 border-r border-[#1E2A45] px-3 py-2 text-[11px] last:border-r-0 ${active ? 'text-[#60A5FA]' : 'text-[#94A3B8] hover:text-white'}`}>
+      <button ref={ref} onClick={onClick} {...props} className={`flex min-w-20 flex-col items-center gap-1 border-r border-slate-200 px-3 py-2 text-[11px] last:border-r-0 dark:border-[#1E2A45] ${active ? 'text-[#1A6CF6] dark:text-[#60A5FA]' : 'text-slate-500 hover:text-[#1A6CF6] dark:text-[#94A3B8] dark:hover:text-white'}`}>
         <Icon size={15} />
         {label}
       </button>

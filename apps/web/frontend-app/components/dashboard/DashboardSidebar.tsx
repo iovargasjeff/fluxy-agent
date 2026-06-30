@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Clock, Users, Trash2, History, LogOut, Settings, Store } from 'lucide-react';
+import { Home, Clock, Users, Trash2, History, LogOut, Settings, Store, Bot } from 'lucide-react';
 import { logoutAction } from '@/lib/backend/actions/auth/logout';
 import { getInitials, getAvatarColor } from '@/lib/utils/avatar';
 
@@ -27,6 +27,7 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
   const pathname = usePathname();
   const router = useRouter();
   const isSkillsActive = pathname === '/skills' || pathname?.startsWith('/skills/');
+  const isAgentToolsActive = pathname === '/agent-tools' || pathname?.startsWith('/agent-tools/');
 
   return (
     <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 h-screen sticky top-0 bg-white border-r border-slate-200">
@@ -50,15 +51,27 @@ export function DashboardSidebar({ userName, userEmail, userAvatarUrl, activeSec
           Skill Store
         </Link>
 
+        <Link
+          href="/agent-tools"
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
+            isAgentToolsActive
+              ? 'bg-[#1A6CF6] text-white font-medium border-transparent shadow-sm'
+              : 'text-slate-600 hover:bg-blue-50 hover:text-[#1A6CF6] border-transparent'
+          }`}
+        >
+          <Bot size={16} />
+          Herramientas Agenticas
+        </Link>
+
         {NAV_ITEMS.map(({ icon: Icon, label, id }) => {
-          const isActive = !isSkillsActive && activeSection === id;
+          const isActive = !isSkillsActive && !isAgentToolsActive && activeSection === id;
 
           return (
             <button
               key={id}
               onClick={() => {
                 onSectionChange(id);
-                if (isSkillsActive) router.push('/dashboard');
+                if (isSkillsActive || isAgentToolsActive) router.push('/dashboard');
               }}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 w-full ${
                 isActive

@@ -489,3 +489,7 @@ export const skillsAPI = {
       body: JSON.stringify({ enabled }),
     }),
 };
+
+export const mcpAPI = {
+  health: () => apiCall<{ status: string; protocol: string; tools: string[] }>('/mcp/health'),
+};

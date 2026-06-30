@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Clock, Users, Trash2, Database, Activity, LayoutDashboard, LogOut, Store } from 'lucide-react';
+import { Home, Clock, Users, Trash2, Database, Activity, LayoutDashboard, LogOut, Store, Plug, Network, Bot } from 'lucide-react';
 import { getInitials, getAvatarColor } from '@/lib/utils/avatar';
 import { useConnectionStore } from '@/lib/store/useConnectionStore';
 
@@ -16,9 +16,12 @@ const DASHBOARD_ITEMS = [
 
 const MAIN_TOOLS = [
   { icon: LayoutDashboard, label: 'Diagramas ER', href: '/dashboard' },
+  { icon: Plug, label: 'Conexiones', href: '/connect' },
   { icon: Database, label: 'Generador de Datos', href: '/generator' },
   { icon: Activity, label: 'Analizador de Consultas', href: '/analyzer' },
-  { icon: Store, label: 'Skill Store', href: '/skills' }
+  { icon: Store, label: 'Skill Store', href: '/skills' },
+  { icon: Bot, label: 'Herramientas Agenticas', href: '/agent-tools' },
+  { icon: Network, label: 'MCP Local', href: '/mcp' }
 ];
 
 interface DashboardSidebarProps {
