@@ -457,3 +457,35 @@ export const connectorAPI = {
   listSaved: () => apiCall<SavedConnection[]>('/connect/saved'),
   deleteSaved: (id: string) => apiCall<{ message: string }>(`/connect/saved/${id}`, { method: 'DELETE' }),
 };
+
+export interface SkillStoreItem {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  license: string;
+  category: string;
+  engines: string[];
+  tags: string[];
+  risk_level: string;
+  requires_approval: boolean;
+  requires_backup: boolean;
+  requires_sandbox: boolean;
+  installed: boolean;
+  enabled: boolean;
+}
+
+export const skillsAPI = {
+  list: () => apiCall<SkillStoreItem[]>('/skills'),
+  install: (skillId: string) =>
+    apiCall<SkillStoreItem>('/skills/install', {
+      method: 'POST',
+      body: JSON.stringify({ skill_id: skillId }),
+    }),
+  setEnabled: (skillId: string, enabled: boolean) =>
+    apiCall<SkillStoreItem>(`/skills/${skillId}/enabled`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
+    }),
+};

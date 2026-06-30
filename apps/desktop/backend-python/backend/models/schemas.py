@@ -222,6 +222,7 @@ class ParseSQLResponse(BaseModel):
 class SkillMetadata(BaseModel):
     id: str
     name: str
+    description: str = ""
     version: str = "1.0.0"
     author: str = "Fluxy"
     license: str = "free"
@@ -234,6 +235,19 @@ class SkillMetadata(BaseModel):
     requires_backup: bool = False
     requires_sandbox: bool = False
     default_enabled: bool = True
+    installed: bool = False
+    enabled: bool = False
+    source_url: Optional[str] = None
+    spec_version: str = "agent-skills-v1"
+    tags: List[str] = []
+
+
+class SkillInstallRequest(BaseModel):
+    skill_id: str
+
+
+class SkillToggleRequest(BaseModel):
+    enabled: bool
 
 
 class Artifact(BaseModel):

@@ -76,3 +76,46 @@ export const projectInvitations = pgTable('project_invitations', {
     unique('project_invitations_project_id_email_unique').on(table.projectId, table.email)
   ];
 });
+
+export const skillCatalog = pgTable('skill_catalog', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').default('').notNull(),
+  version: text('version').default('1.0.0').notNull(),
+  author: text('author').default('Fluxy').notNull(),
+  license: text('license').default('free').notNull(),
+  category: text('category').notNull(),
+  engines: text('engines').array().default(sql`ARRAY[]::text[]`).notNull(),
+  tags: text('tags').array().default(sql`ARRAY[]::text[]`).notNull(),
+  minEngineVersion: text('min_engine_version'),
+  maxEngineVersion: text('max_engine_version'),
+  riskLevel: text('risk_level').default('low').notNull(),
+  requiresApproval: boolean('requires_approval').default(false).notNull(),
+  requiresBackup: boolean('requires_backup').default(false).notNull(),
+  requiresSandbox: boolean('requires_sandbox').default(false).notNull(),
+  defaultEnabled: boolean('default_enabled').default(true).notNull(),
+  sourceUrl: text('source_url'),
+  specVersion: text('spec_version').default('agent-skills-v1').notNull(),
+  manifest: jsonb('manifest').$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    check('skill_catalog_risk_level_check', sql`${table.riskLevel} IN ('low', 'medium', 'high')`)
+  ];
+});
+
+export const userSkills = pgTable('user_skills', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  skillId: text('skill_id').notNull().references(() => skillCatalog.id, { onDelete: 'cascade' }),
+  installedVersion: text('installed_version').notNull(),
+  enabled: boolean('enabled').default(true).notNull(),
+  installSource: text('install_source').default('fluxy-catalog').notNull(),
+  installedAt: timestamp('installed_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    unique('user_skills_user_id_skill_id_unique').on(table.userId, table.skillId)
+  ];
+});

@@ -1,12 +1,14 @@
 import uuid
 
+from sqlalchemy.orm import Session
+
 from backend.models.schemas import Artifact, PolicyDecision, SkillRunRequest, SkillRunResponse
 from backend.policy.engine import evaluate_policy
-from backend.skills.registry import get_skill
+from backend.skills.registry import get_enabled_skill
 
 
-def run_skill(request: SkillRunRequest) -> SkillRunResponse:
-    skill = get_skill(request.skill_id)
+def run_skill(request: SkillRunRequest, db: Session | None = None) -> SkillRunResponse:
+    skill = get_enabled_skill(db, request.skill_id)
     run_id = str(uuid.uuid4())
 
     if not skill:
@@ -14,7 +16,7 @@ def run_skill(request: SkillRunRequest) -> SkillRunResponse:
             run_id=run_id,
             skill_id=request.skill_id,
             status="not_found",
-            message="Skill is not installed.",
+            message="Skill is not installed or is disabled.",
         )
 
     environment = request.profile.environment if request.profile else "unknown"

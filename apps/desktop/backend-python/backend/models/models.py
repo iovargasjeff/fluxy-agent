@@ -41,6 +41,18 @@ class SyncQueueItem(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
+class LocalSkillInstallation(Base):
+    __tablename__ = "local_skill_installations"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    skill_id = Column(String(100), nullable=False, unique=True, index=True)
+    version = Column(String(50), nullable=False, default="1.0.0")
+    enabled = Column(Boolean, nullable=False, default=True)
+    source = Column(String(255), nullable=False, default="fluxy-catalog")
+    installed_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
